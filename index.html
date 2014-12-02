@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>pixi.js example 1</title>
+    <title>Q-Learning Good Times</title>
     <style>
         body {
             margin: 0;
@@ -17,37 +17,233 @@
     var stage = new PIXI.Stage(0x66FF99);
  
     // create a renderer instance.
-    var renderer = PIXI.autoDetectRenderer(400, 300);
+    var renderer = PIXI.autoDetectRenderer(900, 420);
  
     // add the renderer view element to the DOM
     document.body.appendChild(renderer.view);
  
     requestAnimFrame( animate );
 
-    // create a texture from an image path
-    var texture = PIXI.Texture.fromImage("bunny.png");
-    // create a new Sprite using the texture
-    var bunny = new PIXI.Sprite(texture);
+    // draw le grid
+    drawHorizontalLines();
+    drawVerticalLines();
+
+    // draw le hero
+    var hero = new PIXI.Graphics();
+    // begin a green fill..
+    hero.beginFill(0x000000);
+    // draw a triangle using lines
+    hero.moveTo(30,15);
+    hero.lineTo(20, 45);
+    hero.lineTo(40, 45);
+    // end the fill
+    hero.endFill();
+    // add it the stage so we see it on our screens..
+    stage.addChild(hero);
  
-    // center the sprites anchor point
-    bunny.anchor.x = 0.5;
-    bunny.anchor.y = 0.5;
- 
-    // move the sprite t the center of the screen
-    bunny.position.x = 200;
-    bunny.position.y = 150;
- 
-    stage.addChild(bunny);
- 
+    // draw our enemies
+    var enemy1 = new PIXI.Graphics();
+    // begin fill
+    enemy1.beginFill(0x000000);
+    // draw a circle
+    enemy1.moveTo(150, 30);
+    enemy1.drawCircle(150, 30, 12);
+    enemy1.endFill();
+    stage.addChild(enemy1);
+
+    var enemy2 = new PIXI.Graphics();
+    // begin fill
+    enemy2.beginFill(0x000000);
+    // draw a circle
+    enemy2.moveTo(330, 210);
+    enemy2.drawCircle(330, 210, 12);
+    enemy2.endFill();
+    stage.addChild(enemy2);
+
+
+    // to make me happy, before implementing algorithm, just animate the triangle around each tile
+    
+
+
+
+
+
+    // q-learning algorithm step, then draw on screen the move our hero made
+
+    var updatedX = 60;
+    var updatedY = 60;
+
+    var potentialMoves = new Array(60, -60, 0);
+    var zeroCoords = new Array(0, 1);
+
+    //myArray[Math.floor(Math.random() * myArray.length)];
+
+    snapshotXPos = hero.x;
+    snapshotYPos = hero.y;
+
     function animate() {
  
         requestAnimFrame( animate );
 
-        // just for fun, lets rotate mr rabbit a little
-        bunny.rotation += 0.1;
+        if ((hero.x != snapshotXPos + updatedX) || (hero.y != snapshotYPos + updatedY)){
+            if (updatedX > 0){
+                hero.x += 10;
+            } else if (updatedX < 0) {
+                hero.x -= 10;
+            }
+            if (updatedY > 0){
+                hero.y += 10;
+            } else if (updatedY < 0) {
+                hero.y -= 10;
+            }
+        } else {
+            // update the position for hero to travel
+            snapshotXPos = hero.x;
+            snapshotYPos = hero.y;
+
+            // border tiles, hero cannot travel beyond map
+            var hitBorderX = false;
+            var hitBorderY = false;
+
+            if (snapshotXPos < 60){
+                // left border
+                // remove -60 from options
+                var leftBorderPotential = new Array(60, 0);
+                updatedX = leftBorderPotential[Math.floor(Math.random() * leftBorderPotential.length)];
+                hitBorderX = true;
+            } 
+            if (snapshotYPos < 60){
+                // top border
+                // remove -60 from options
+                var topBorderPotential = new Array(60, 0);
+                updatedY = topBorderPotential[Math.floor(Math.random() * topBorderPotential.length)];
+                hitBorderY = true;
+            }
+
+            if (snapshotXPos > 780){
+                // right border
+                var rightBorderPotential = new Array(-60, 0);
+                updatedX = rightBorderPotential[Math.floor(Math.random() * rightBorderPotential.length)];
+                hitBorderX = true;             
+            }
+
+            if (snapshotYPos > 300){
+                // bottom border
+                var bottomBorderPotential = new Array(-60, 0);
+                updatedY = bottomBorderPotential[Math.floor(Math.random() * bottomBorderPotential.length)];
+                hitBorderY = true;
+            }
+
+            if (hitBorderX == false){
+                updatedX = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];                
+            }
+            if (hitBorderY == false){
+                updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];            
+            }
+            
+
+/*
+            // border tiles, hero cannot travel beyond map
+            if (snapshotXPos == 0){
+                // left border
+                // remove -60 from options
+                var leftBorderPotential = potentialMoves.splice(1, 1);
+                updatedX = leftBorderPotential[Math.floor(Math.random() * leftBorderPotential.length)];
+                updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
+
+            } else if (snapshotYPos == 0){
+                // top border
+                // remove -60 from options
+                var topBorderPotential = potentialMoves.splice(1, 1);
+                updatedX = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
+                updatedY = topBorderPotential[Math.floor(Math.random() * topBorderPotential.length)];
+            } else {
+                updatedX = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
+                updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
+            }
+*/
+
+            //updatedX = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
+            //updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
+
+
+            // if both coordinates aren't equal to 0, choose between one and 0 it out
+            // so that hero can't move diagonally
+            if ((updatedX != 0) && (updatedY != 0)){
+                zeroCoord = zeroCoords[Math.floor(Math.random() * zeroCoords.length)];
+                if (zeroCoord == 0){
+                    updatedY = 0;
+                } else {
+                    updatedX = 0;
+                }
+            }
+        }
+
+
+        //hero.position(390, 15);
+
+
  
         // render the stage   
         renderer.render(stage);
+    }
+
+
+
+
+    /*
+     *  draw horizontal lines
+     */
+    function drawHorizontalLines() {
+        var addingElements = true;
+        var yPos = 60;
+        var horizIteration = 0;
+        while (addingElements == true){
+            // draw lines to create grid
+            var graphics = new PIXI.Graphics(); 
+            // begin a green fill..
+            graphics.beginFill(0x000000);
+            // draw a triangle using lines
+            graphics.moveTo(0,yPos);
+            graphics.drawRect(0, yPos, 900, 2);
+            // end the fill
+            graphics.endFill();
+            // add it the stage so we see it on our screens..
+            stage.addChild(graphics);
+            horizIteration += 1;
+            yPos += 60;
+            if (horizIteration >= 6){
+                addingElements = false;
+            }
+        }
+    }
+
+    /*
+     * draw vertical lines
+     */
+    function drawVerticalLines(){
+        addingElements = true;
+        var xPos = 60;
+        var vertIteration = 0;
+        // draw vertical lines
+        while (addingElements == true){
+            // draw lines to create grid
+            var graphics = new PIXI.Graphics();
+            // begin a green fill..
+            graphics.beginFill(0x000000);
+            // draw a triangle using lines
+            graphics.moveTo(xPos,0);
+            graphics.drawRect(xPos, 0, 2, 420);
+            // end the fill
+            graphics.endFill();
+            // add it the stage so we see it on our screens..
+            stage.addChild(graphics);
+            vertIteration += 1;
+            xPos += 60;
+            if (vertIteration >= 15){
+                addingElements = false;
+            }    
+        }
     }
  
     </script>
