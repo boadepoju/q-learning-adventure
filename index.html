@@ -30,77 +30,84 @@
 
     // draw le hero
     var hero = new PIXI.Graphics();
-    // begin a green fill..
-    hero.beginFill(0x000000);
-    // draw a triangle using lines
-    hero.moveTo(30,15);
-    hero.lineTo(20, 45);
-    hero.lineTo(40, 45);
-    // end the fill
-    hero.endFill();
-    // add it the stage so we see it on our screens..
-    stage.addChild(hero);
+    constructHero();
+
  
-    // draw our enemies
+    // draw le enemies
     var enemy1 = new PIXI.Graphics();
-    // begin fill
-    enemy1.beginFill(0x000000);
-    // draw a circle
-    enemy1.moveTo(150, 30);
-    enemy1.drawCircle(150, 30, 12);
-    enemy1.endFill();
-    stage.addChild(enemy1);
-
+    constructEnemy(enemy1, 150, 30);
     var enemy2 = new PIXI.Graphics();
-    // begin fill
-    enemy2.beginFill(0x000000);
-    // draw a circle
-    enemy2.moveTo(330, 210);
-    enemy2.drawCircle(330, 210, 12);
-    enemy2.endFill();
-    stage.addChild(enemy2);
+    constructEnemy(enemy2, 330, 210);
 
 
-    // to make me happy, before implementing algorithm, just animate the triangle around each tile
-    
+    // draw le goal node
+    var goal = new PIXI.Graphics();
+    constructGoal(goal, 860, 380);
 
-
-
-
-
-    // q-learning algorithm step, then draw on screen the move our hero made
 
     var updatedX = 60;
     var updatedY = 60;
-
     var potentialMoves = new Array(60, -60, 0);
     var zeroCoords = new Array(0, 1);
-
-    //myArray[Math.floor(Math.random() * myArray.length)];
 
     snapshotXPos = hero.x;
     snapshotYPos = hero.y;
 
+
+    // create Q table, 2d array
+    var qtable = new Array(9);
+    for (var qxIterator = 0; qxIterator < 9; qxIterator++){
+        qtable[qxIterator] = new Array(9);
+    }
+
+    // create R table, 2d array
+    var rewards = new Array(9);
+    for (var rxIterator = 0; rxIterator < 9; rxIterator++){
+        rewards[rxIterator] = new Array(9);
+    }
+
+    // set rewards matrix manually
+    var rewards = [[ -1,  0, -1,  0, -1, -1, -1, -1, -1  ],           // 1a
+                   [  0, -1,  0, -1,  0, -1, -1, -1, -1  ],           // 1b
+                   [ -1,  0, -1, -1, -1,  0, -1, -1, -1  ],           // 1c
+                   [  0, -1, -1, -1,  0, -1,  0, -1, -1  ],           // 2a
+                   [ -1,  0, -1,  0, -1,  0, -1,  0, -1  ],           // 2b
+                   [ -1, -1,  0, -1,  0, -1, -1, -1, 100 ],           // 2c
+                   [ -1, -1, -1,  0, -1, -1, -1,  0, -1  ],           // 3a
+                   [ -1, -1, -1, -1,  0, -1,  0, -1, 100 ],           // 3b
+                   [ -1, -1, -1, -1, -1,  0, -1, 0, -1   ]]           // 3c
+
+
     function animate() {
- 
         requestAnimFrame( animate );
 
         if ((hero.x != snapshotXPos + updatedX) || (hero.y != snapshotYPos + updatedY)){
             if (updatedX > 0){
-                hero.x += 10;
+                hero.x += 1;
             } else if (updatedX < 0) {
-                hero.x -= 10;
+                hero.x -= 1;
             }
             if (updatedY > 0){
-                hero.y += 10;
+                hero.y += 1;
             } else if (updatedY < 0) {
-                hero.y -= 10;
+                hero.y -= 1;
             }
         } else {
             // update the position for hero to travel
             snapshotXPos = hero.x;
             snapshotYPos = hero.y;
 
+            // choose next state based on q value
+
+
+
+
+
+
+
+
+
+/*
             // border tiles, hero cannot travel beyond map
             var hitBorderX = false;
             var hitBorderY = false;
@@ -141,32 +148,6 @@
                 updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];            
             }
             
-
-/*
-            // border tiles, hero cannot travel beyond map
-            if (snapshotXPos == 0){
-                // left border
-                // remove -60 from options
-                var leftBorderPotential = potentialMoves.splice(1, 1);
-                updatedX = leftBorderPotential[Math.floor(Math.random() * leftBorderPotential.length)];
-                updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
-
-            } else if (snapshotYPos == 0){
-                // top border
-                // remove -60 from options
-                var topBorderPotential = potentialMoves.splice(1, 1);
-                updatedX = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
-                updatedY = topBorderPotential[Math.floor(Math.random() * topBorderPotential.length)];
-            } else {
-                updatedX = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
-                updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
-            }
-*/
-
-            //updatedX = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
-            //updatedY = potentialMoves[Math.floor(Math.random() * potentialMoves.length)];
-
-
             // if both coordinates aren't equal to 0, choose between one and 0 it out
             // so that hero can't move diagonally
             if ((updatedX != 0) && (updatedY != 0)){
@@ -176,13 +157,8 @@
                 } else {
                     updatedX = 0;
                 }
-            }
+            } */
         }
-
-
-        //hero.position(390, 15);
-
-
  
         // render the stage   
         renderer.render(stage);
@@ -190,6 +166,46 @@
 
 
 
+
+    /*
+     *
+     */
+    function constructHero(){   
+        // begin a green fill..
+        hero.beginFill(0x000000);
+        // draw a triangle using lines
+        hero.moveTo(30,15);
+        hero.lineTo(20, 45);
+        hero.lineTo(40, 45);
+        // end the fill
+        hero.endFill();
+        // add it the stage so we see it on our screens..
+        stage.addChild(hero);
+    }
+
+    /*
+     *
+     */
+    function constructEnemy(e, x, y){
+        // begin fill
+        e.beginFill(0x000000);
+        // draw a circle
+        e.moveTo(x, y);
+        e.drawCircle(x, y, 12);
+        e.endFill();
+        stage.addChild(e);   
+    }
+
+    /*
+     *
+     */
+     function constructGoal(g, x, y){
+        g.beginFill(0x000000);
+        g.moveTo(x, y);
+        g.drawRect(x, y, 20, 20);
+        g.endFill();
+        stage.addChild(g);
+     }
 
     /*
      *  draw horizontal lines
