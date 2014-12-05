@@ -57,16 +57,12 @@
     // create Q table, 2d array
     var qtable = new Array(9);
     for (var qxIterator = 0; qxIterator < 9; qxIterator++){
-        qtable[qxIterator] = new Array(9);
+        qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     }
 
     // create R table, 2d array
-    var rewards = new Array(9);
-    for (var rxIterator = 0; rxIterator < 9; rxIterator++){
-        rewards[rxIterator] = new Array(9);
-    }
-
     // set rewards matrix manually
+    
     var rewards = [[ -1,  0, -1,  0, -1, -1, -1, -1, -1  ],           // 1a
                    [  0, -1,  0, -1,  0, -1, -1, -1, -1  ],           // 1b
                    [ -1,  0, -1, -1, -1,  0, -1, -1, -1  ],           // 1c
@@ -75,7 +71,29 @@
                    [ -1, -1,  0, -1,  0, -1, -1, -1, 100 ],           // 2c
                    [ -1, -1, -1,  0, -1, -1, -1,  0, -1  ],           // 3a
                    [ -1, -1, -1, -1,  0, -1,  0, -1, 100 ],           // 3b
-                   [ -1, -1, -1, -1, -1,  0, -1, 0, -1   ]]           // 3c
+                   [ -1, -1, -1, -1, -1,  0, -1, 0, -1   ]];          // 3c
+
+    
+    // movement index
+    var xMov    = [[   -1,  60,  -1,   0,   -1,  -1,  -1,  -1,  -1  ],           // 1a
+                   [  -60,  -1,  60,  -1,    0,  -1,  -1,  -1,  -1  ],           // 1b
+                   [   -1, -60,  -1,  -1,   -1,   0,  -1,  -1,  -1  ],           // 1c
+                   [    0,  -1,  -1,  -1,   60,  -1,   0,  -1,  -1  ],           // 2a
+                   [   -1,   0,  -1, -60,   -1,  60,  -1,   0,  -1  ],           // 2b
+                   [   -1,  -1,   0,  -1,  -60,  -1,  -1,  -1,  0  ],            // 2c
+                   [   -1,  -1,  -1,   0,   -1,  -1,  -1,  60,  -1  ],           // 3a
+                   [   -1,  -1,  -1,  -1,    0,  -1, -60,  -1,  60  ],           // 3b
+                   [   -1,  -1,  -1,  -1,   -1,   0,  -1, -60,  -1  ]];          // 3c
+
+    var yMov    = [[   -1,    0,  -1,   60,  -1,  -1,  -1,  -1,  -1  ],           // 1a
+                   [    0,   -1,   0,   -1,  60,  -1,  -1,  -1,  -1  ],           // 1b
+                   [   -1,    0,  -1,   -1,  -1,  60,  -1,  -1,  -1  ],           // 1c
+                   [  -60,   -1,  -1,  - 1,   0,  -1,  60,  -1,  -1  ],           // 2a
+                   [   -1,  -60,  -1,    0,  -1,   0,  -1,  60,  -1  ],           // 2b
+                   [   -1,   -1, -60,   -1,   0,  -1,  -1,  -1,  60  ],           // 2c
+                   [   -1,   -1,  -1,  -60,  -1,  -1,  -1,   0,  -1  ],           // 3a
+                   [   -1,   -1,  -1,   -1, -60,  -1,   0,  -1,   0  ],           // 3b
+                   [   -1,   -1,  -1,   -1,  -1, -60,  -1,   0,  -1  ]];          // 3c
 
 
     function animate() {
@@ -83,27 +101,49 @@
 
         if ((hero.x != snapshotXPos + updatedX) || (hero.y != snapshotYPos + updatedY)){
             if (updatedX > 0){
-                hero.x += 1;
+                hero.x += 2;
             } else if (updatedX < 0) {
-                hero.x -= 1;
+                hero.x -= 2;
             }
             if (updatedY > 0){
-                hero.y += 1;
+                hero.y += 2;
             } else if (updatedY < 0) {
-                hero.y -= 1;
+                hero.y -= 2;
             }
         } else {
             // update the position for hero to travel
             snapshotXPos = hero.x;
             snapshotYPos = hero.y;
 
-            // choose next state based on q value
+            // grid location to array mapping
+            var row = Math.ceil(snapshotXPos / 60);
+            var yCalc = Math.floor(snapshotYPos / 60);
+            row += (yCalc * 3);
+            //console.log("grid row value = " + row);
+            
+            // for whichever state we are in, find the max Q of next state's actions
+            var maxQResult = findMaxQ(row);
+            console.log("finished findMaxQ for row " + row);
+
+            // perform Q calculation, store it in Q table
+            var qCalculation = rewards[row][maxQResult[1]] + (0.8 * maxQResult[0]);
+
+            if (row == 5 || row == 7){
+                for (i = 0; i < rewards[row].length; i++){
+                    console.log("reward @ index " + i + " = " + rewards[row][i]);
+                }
+                console.log("qCalc: foundIndex = " + maxQResult[1]);
+                console.log("qCalc: reward found = " + rewards[row][maxQResult[1]]);
+                console.log("qCalc: qCalculation = " + qCalculation);
+            }
 
 
 
+            qtable[row][maxQResult[1]] = qCalculation;
 
-
-
+            // move hero to the state with highest found Q value from previous
+            updatedX = xMov[row][maxQResult[1]];
+            updatedY = yMov[row][maxQResult[1]];
 
 
 
@@ -164,8 +204,70 @@
         renderer.render(stage);
     }
 
+    /*
+     *
+     */
+    function findMaxQ(row){
+        var maxQ = 0;
+        var indexFound = 0;
+        var qOnlyValid = false;
 
+        if (row == 5 || row == 7){                                      // debug only, remove
+            console.log("Entered row 5");                   // debug only, remove
+        }                                                   // debug only, remove
 
+        // look at reward table to determine valid actions for current state.
+        for (i = 0; i < rewards[row].length; i++){
+            // only evaluate on valid actions
+            if (rewards[row][i] != -1){
+                //console.log("bobo valid action locations = " + i);
+                if (qtable[row][i] > maxQ){
+                    // highest Q value found and index are returned
+                    maxQ = qtable[row][i];
+                    indexFound = i;
+                    qOnlyValid = true;
+                } else if (qtable[row][i] == maxQ){
+                    qOnlyValid = false;
+                }
+            }
+        }
+
+       if (row == 5 || row == 7){
+            console.log("maxQ found = " + maxQ);
+        }
+
+        if (qOnlyValid == false){
+            //console.log("bobo got to qOnlyValid");
+            var locationsToRandomize = [];
+            // second loop to determine other indexes where maxQ was found, inefficient I know
+            for (i = 0; i < rewards[row].length; i++){
+                // only evaluate on valid actions
+                if (rewards[row][i] != -1){
+                    console.log("rewards[row][i] = " + rewards[row][i]);
+                    console.log("qtable[row][i] = " + qtable[row][i]);
+                    if (qtable[row][i] == maxQ){
+                        locationsToRandomize.push(i);
+                    }
+                }
+            }
+
+            //if (row == 5 || row == 7){
+                for (i = 0; i < locationsToRandomize.length; i++){
+                    console.log("locationsToRandomize at index " + i + " = " + locationsToRandomize[i]);
+                }
+            //}
+
+            // set indexFound to one of the locationsToRandomize values randomly
+            indexFound = locationsToRandomize[Math.floor(Math.random() * locationsToRandomize.length)];
+            //console.log("findMaxQ: indexFound = " + indexFound);
+        }
+
+        console.log("findMaxQ: maxQ = " + maxQ);
+        console.log("findMaxQ: indexFound = " + indexFound);
+        console.log("findMaxQ: row = " + row);
+
+        return [maxQ, indexFound];
+    }
 
     /*
      *
