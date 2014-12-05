@@ -39,6 +39,8 @@
     var xMovementCheck = 0;
     var yMovementCheck = 0;
 
+    var goalReached = false;
+
     var hero = new PIXI.Graphics();
     constructHero();
 
@@ -101,28 +103,38 @@
 
     function animate() {
         requestAnimFrame( animate );
-        //console.log("animate: got to animate");
+
         xMovementCheck = hero.x + origXLoc;
         yMovementCheck = hero.y + origYLoc;
-        //console.log("animate: xMovementCheck = " + xMovementCheck);
-        //console.log("animate: yMovementCheck = " + yMovementCheck);
         if ((xMovementCheck != snapshotXPos + updatedX) || (yMovementCheck != snapshotYPos + updatedY)){
             if (updatedX > 0){
-                hero.x += 2;
+                hero.x += 5;
             } else if (updatedX < 0) {
-                hero.x -= 2;
+                hero.x -= 5;
             }
             if (updatedY > 0){
-                hero.y += 2;
+                hero.y += 5;
             } else if (updatedY < 0) {
-                hero.y -= 2;
+                hero.y -= 5;
             }
         } else {
+            if (goalReached == true){
+                goalReached = false;
+                hero.clear();
+                hero.removeStageReference();
+                stage.removeChild(hero);    // bobo revisit -- also add graphic.clear, make sure references removed
+                hero = new PIXI.Graphics();
+                constructHero();
+            }
+
             // update the position for hero to travel
+
+            //console.log("hero.x = " + hero.x);
+            //console.log("hero.y = " + hero.y);
+
             snapshotXPos = hero.x + origXLoc;
             snapshotYPos = hero.y + origYLoc;
-            console.log("animate: snapshotXPos = " + snapshotXPos);
-            console.log("animate: snapshotYPos = " + snapshotYPos);
+
             // grid location to array mapping
             var row = gridMovementToArrayMap(snapshotXPos, snapshotYPos);
             
@@ -137,7 +149,18 @@
             updatedY = yMov[row][maxQResult[1]];
 
             // if goal node is found, restart position of hero to beginning
-            if (gridMovementToArrayMap(updatedX, updatedY) == 8){
+            if (gridMovementToArrayMap(snapshotXPos + updatedX, snapshotYPos + updatedY) == 8){
+                goalReached = true;
+
+
+
+                // iterate through qtable to observe whether values are suitable
+                for (i = 0; i < qtable.length; i++) {
+                    
+                    for (j = 0; j < qtable[i].length; j++) {
+                        console.log("qtable entries at [" + i + "][" + j + "] = " + qtable[i][j]);
+                    } 
+                }
                 
             }
         }
@@ -158,6 +181,9 @@
         var row = Math.ceil(x / 60);
         var yCalc = Math.floor(y / 60);
         row += (yCalc * 3);
+        //console.log("gridMovementToArrayMap: x = " + x);
+        //console.log("gridMovementToArrayMap: y = " + y);
+        //console.log("gridMovementToArrayMap: row = " + (row - 1));
         return (row - 1); // mapping physical rows (1) to array (indexed from 0)
     }
 
@@ -182,7 +208,6 @@
         for (i = 0; i < rewards[row].length; i++){
             // only evaluate on valid actions
             if (rewards[row][i] != -1){
-                //console.log("bobo valid action locations = " + i);
                 if (qtable[row][i] > maxQ){
                     // highest Q value found and index are returned
                     maxQ = qtable[row][i];
@@ -195,7 +220,6 @@
         }
 
         if (qOnlyValid == false){
-            //console.log("bobo got to qOnlyValid");
             var locationsToRandomize = [];
             // second loop to determine other indexes where maxQ was found, inefficient I know
             for (i = 0; i < rewards[row].length; i++){
@@ -209,7 +233,6 @@
 
             // set indexFound to one of the locationsToRandomize values randomly
             indexFound = locationsToRandomize[Math.floor(Math.random() * locationsToRandomize.length)];
-            //console.log("findMaxQ: indexFound = " + indexFound);
         }
 
         return [maxQ, indexFound];
@@ -227,18 +250,12 @@
          if (xAdj == 0){
             x = 30;  
          } else {
-            //if (placement > 3){
-                if ((placement - 1) % 3 == 0){
-                    x = 60 + 30;
-                } else if ((placement - 2) % 3 == 0){
-                    x = (2 * 60) + 30;
-                } else {
-                    console.log("Bo why did we get here?");
-                }
-            //}
+            if ((placement - 1) % 3 == 0){
+                x = 60 + 30;
+            } else if ((placement - 2) % 3 == 0){
+                x = (2 * 60) + 30;
+            } 
          }
-
-
 
          var yAdj = Math.ceil(placement / 3);
          var y = ((yAdj - 1) * 60) + 15;
@@ -260,18 +277,11 @@
         hero.moveTo(startingXY[0],startingXY[1]);
         hero.lineTo(startingXY[0] - 10, startingXY[1] + 30);
         hero.lineTo(startingXY[0] + 10, startingXY[1] + 30);
-        /*
-        hero.moveTo(30,15);
-        hero.lineTo(20, 45);
-        hero.lineTo(40, 45);
-        */
+
         // end the fill
         hero.endFill();
         // add it the stage so we see it on our screens..
         stage.addChild(hero);
-
-        console.log("constructHero: x = " + startingXY[0]);
-        console.log("constructHero: y = " + startingXY[1]);
 
         origXLoc = startingXY[0]; // hero.x;
         origYLoc = startingXY[1]; // hero.y;
@@ -280,8 +290,8 @@
         snapshotXPos = startingXY[0];
         snapshotYPos = startingXY[1];
 
-        console.log("constructHero: hero.x = " + hero.x);
-        console.log("constructHero: hero.y = " + hero.y);
+        //console.log("constructHero: origXLoc = " + origXLoc);
+        //console.log("constructHero: origYLoc = " + origYLoc);
     }
 
     /*
