@@ -38,11 +38,30 @@
     blackBackground.alpha = 0;
     stage.addChild(blackBackground);
 
+    // le text area background
+    var textBackground = new PIXI.Sprite(blackTexture);
+    textBackground.alpha = 1;
+    textBackground.position.x = 420;
+    stage.addChild(textBackground);
+
+    // le bottom black background
+    var bottomBackground = new PIXI.Sprite(blackTexture);
+    bottomBackground.position.y = 240;
+    stage.addChild(bottomBackground);
+
+    // le title text
+    /*
+    var text = new PIXI.Text("Reinforced Learning Madness", {font:"17px Arial", fill:"white"});
+    text.x = 530;
+    text.y = 20;
+    stage.addChild(text);
+    */
+
     var trackBackgroundPos = 0;
     var backBool = false;
  
     // create a renderer instance.
-    var renderer = PIXI.autoDetectRenderer(720, 240);
+    var renderer = PIXI.autoDetectRenderer(1300, 480);
  
     // add the renderer view element to the DOM
     document.body.appendChild(renderer.view);
@@ -95,6 +114,29 @@
         qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     }
 
+    // draw initial q table in text 
+    var qtableText = new Array(28);
+    for (var i = 0; i < qtableText.length; i++){
+        qtableText[i] = new Array(28);
+    }
+
+    xTextInc = 550;
+    yTextInc = 30;
+    for (var i = 0; i < qtable.length; i++){
+        for (var j = 0; j < qtable[i].length; j++){
+            var text = new PIXI.Text("0", {font:"13px Arial", fill:"white"});
+            text.x = xTextInc;
+            text.y = yTextInc;
+            stage.addChild(text);
+            xTextInc += 40;
+            qtableText[i][j] = text;
+        }
+        yTextInc += 25;
+        xTextInc = 550;
+    } 
+
+
+
     // create R table, 2d array
     // set rewards matrix manually
     //                1a  1b  1c  1d  1e  1f  1g  2a  2b  2c  2d  2e  2f  2g  3a  3b  3c  3d  3e  3f  3g  4a  4b  4c  4d  4e  4f  4g
@@ -128,22 +170,6 @@
                    [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1,  0, -1,  100], // 4f
                    [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1,  0,  100]]; // 4g
 
-/*
-                  [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 1e
-*/
-
-
-    /*
-    var rewards = [[  -1,  0, -1,  0, -1, -1, -1, -1, -1  ],           // 1a
-                   [  0,  -1,  0, -1,  0, -1, -1, -1, -1  ],           // 1b
-                   [ -1,  0,  -1, -1, -1,  0, -1, -1, -1  ],           // 1c
-                   [  0, -1, -1,  -1,  0, -1,  0, -1, -1  ],           // 2a
-                   [ -1,  0, -1,  0,  -1,  0, -1,  0, -1  ],           // 2b
-                   [ -1, -1,  0, -1,  0,  -1, -1, -1, 100 ],           // 2c
-                   [ -1, -1, -1,  0, -1, -1,  -1,  0, -1  ],           // 3a
-                   [ -1, -1, -1, -1,  0, -1,  0,  -1, 100 ],           // 3b
-                   [ -1, -1, -1, -1, -1,  0, -1,  0,  100  ]];          // 3c
-    */
     
     // movement index
     //                1a  1b  1c  1d  1e  1f  1g  2a  2b  2c  2d  2e  2f  2g  3a  3b  3c  3d  3e  3f  3g  4a  4b  4c  4d  4e  4f  4g
@@ -177,19 +203,6 @@
                    [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1,-60, -1, 60], // 4f
                    [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1,-60,  0]]; // 4g
 
-
-/*
-    var xMov    = [[    -1,  60,  -1,   0,   -1,  -1,  -1,  -1,  -1  ],           // 1a
-                   [  -60,   -1,  60,  -1,    0,  -1,  -1,  -1,  -1  ],           // 1b
-                   [   -1, -60,   -1,  -1,   -1,   0,  -1,  -1,  -1  ],           // 1c
-                   [    0,  -1,  -1,   -1,   60,  -1,   0,  -1,  -1  ],           // 2a
-                   [   -1,   0,  -1, -60,    -1,  60,  -1,   0,  -1  ],           // 2b
-                   [   -1,  -1,   0,  -1,  -60,   -1,  -1,  -1,  0  ],            // 2c
-                   [   -1,  -1,  -1,   0,   -1,  -1,   -1,  60,  -1  ],           // 3a
-                   [   -1,  -1,  -1,  -1,    0,  -1, -60,   -1,  60  ],           // 3b
-                   [   -1,  -1,  -1,  -1,   -1,   0,  -1, -60,   0  ]];          // 3c
-*/
-
     //                1a  1b  1c  1d  1e  1f  1g  2a  2b  2c  2d  2e  2f  2g  3a  3b  3c  3d  3e  3f  3g  4a  4b  4c  4d  4e  4f  4g
     var yMov =     [[ -1,  0, -1, -1, -1, -1, -1, 60, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 1a
                    [   0, -1,  0, -1, -1, -1, -1, -1, 60, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 1b
@@ -221,18 +234,6 @@
                    [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-60, -1, -1, -1, -1, -1,  0, -1,  0], // 4f
                    [  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-60, -1, -1, -1, -1, -1,  0,  0]]; // 4g
 
-/*
-    var yMov    = [[    -1,    0,  -1,   60,  -1,  -1,  -1,  -1,  -1  ],           // 1a
-                   [    0,    -1,   0,   -1,  60,  -1,  -1,  -1,  -1  ],           // 1b
-                   [   -1,    0,   -1,   -1,  -1,  60,  -1,  -1,  -1  ],           // 1c
-                   [  -60,   -1,  -1,    -1,   0,  -1,  60,  -1,  -1  ],           // 2a
-                   [   -1,  -60,  -1,    0,   -1,   0,  -1,  60,  -1  ],           // 2b
-                   [   -1,   -1, -60,   -1,   0,   -1,  -1,  -1,  60  ],           // 2c
-                   [   -1,   -1,  -1,  -60,  -1,  -1,   -1,   0,  -1  ],           // 3a
-                   [   -1,   -1,  -1,   -1, -60,  -1,   0,   -1,   0  ],           // 3b
-                   [   -1,   -1,  -1,   -1,  -1, -60,  -1,   0,   0  ]];          // 3c
-                   */
-
 
     function animate() {
         requestAnimFrame( animate );
@@ -244,14 +245,14 @@
         yMovementCheck = hero.position.y; //+ origYLoc;
         if ((xMovementCheck != snapshotXPos + updatedX) || (yMovementCheck != snapshotYPos + updatedY)){
             if (updatedX > 0){
-                hero.position.x += 5;
+                hero.position.x += 10;
             } else if (updatedX < 0) {
-                hero.position.x -= 5;
+                hero.position.x -= 10;
             }
             if (updatedY > 0){
-                hero.position.y += 5;
+                hero.position.y += 10;
             } else if (updatedY < 0) {
-                hero.position.y -= 5;
+                hero.position.y -= 10;
             }
 
            if (backFlushTrans == true){
@@ -379,6 +380,10 @@
 
         //console.log("performQCalculation: qCalculation = " + qCalculation);
         qtable[previousRow][previousMaxQ[1]] = qCalculation;
+
+        qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
+
+        //qtableText[0][0].setText(1);
 
         /*
         for (i = 0; i < qtable.length; i++) {
@@ -541,18 +546,16 @@
         while (addingElements == true){
             // draw lines to create grid
             var graphics = new PIXI.Graphics(); 
-            // begin a green fill..
             graphics.beginFill(0x000000);
-            // draw a triangle using lines
             graphics.moveTo(0,yPos);
-            graphics.drawRect(0, yPos, 900, 2);
+            graphics.drawRect(0, yPos, 420, 2);
             // end the fill
             graphics.endFill();
             // add it the stage so we see it on our screens..
             stage.addChild(graphics);
             horizIteration += 1;
             yPos += 60;
-            if (horizIteration >= 6){
+            if (horizIteration >= 4){
                 addingElements = false;
             }
         }
@@ -569,18 +572,16 @@
         while (addingElements == true){
             // draw lines to create grid
             var graphics = new PIXI.Graphics();
-            // begin a green fill..
             graphics.beginFill(0x000000);
-            // draw a triangle using lines
             graphics.moveTo(xPos,0);
-            graphics.drawRect(xPos, 0, 2, 420);
+            graphics.drawRect(xPos, 0, 2, 240);
             // end the fill
             graphics.endFill();
             // add it the stage so we see it on our screens..
             stage.addChild(graphics);
             vertIteration += 1;
             xPos += 60;
-            if (vertIteration >= 15){
+            if (vertIteration >= 7){
                 addingElements = false;
             }    
         }
