@@ -16,13 +16,21 @@
     // create an new instance of a pixi stage
     var stage = new PIXI.Stage(0xffffff);
 
-    // create a texture from an image path
+    // create scrolling background images
+    // le background 1
     var texture = PIXI.Texture.fromImage("gradient1.jpg");
     var background = new PIXI.Sprite(texture);
     stage.addChild(background);
+    // le background 2
+    var background2 = new PIXI.Sprite(texture);
+    background2.position.x = 720;
+    stage.addChild(background2);
+
+    var trackBackgroundPos = 0;
+    var backBool = false;
  
     // create a renderer instance.
-    var renderer = PIXI.autoDetectRenderer(900, 420);
+    var renderer = PIXI.autoDetectRenderer(720, 240);
  
     // add the renderer view element to the DOM
     document.body.appendChild(renderer.view);
@@ -58,20 +66,15 @@
     var hero = new PIXI.Sprite(texture1);
     constructHero();
 
- 
     // draw le enemies
     //var enemy1 = new PIXI.Graphics();
     //constructEnemy(enemy1, 150, 30);
     //var enemy2 = new PIXI.Graphics();
     //constructEnemy(enemy2, 330, 210);
 
-
     // draw le goal node
     var goal = new PIXI.Graphics();
     constructGoal(goal, 860, 380);
-
-
-
 
     // create Q table, 2d array
     var qtable = new Array(9);
@@ -118,6 +121,31 @@
     function animate() {
         requestAnimFrame( animate );
 
+        if (backBool == false){
+            background.position.x -= 5;
+            trackBackgroundPos += 5;
+            if (trackBackgroundPos >= 1190){
+                background2.position.x -= 5;
+                if (trackBackgroundPos >= 1920){
+                    background.position.x = 720;
+                    trackBackgroundPos = 0;
+                    backBool = true;
+                }
+            }
+        } else {
+            background2.position.x -= 5;
+            trackBackgroundPos += 5;
+            if (trackBackgroundPos >= 1190){
+                background.position.x -= 5;
+                if (trackBackgroundPos >= 1920){
+                    background2.position.x = 720;
+                    trackBackgroundPos = 0;
+                    backBool = false;
+                }
+            }
+        }
+
+
         xMovementCheck = hero.position.x; //+ origXLoc;
         yMovementCheck = hero.position.y; //+ origYLoc;
         if ((xMovementCheck != snapshotXPos + updatedX) || (yMovementCheck != snapshotYPos + updatedY)){
@@ -142,10 +170,6 @@
             }
 
             // update the position for hero to travel
-
-            //console.log("hero.x = " + hero.x);
-            //console.log("hero.y = " + hero.y);
-
             snapshotXPos = hero.position.x //+ origXLoc;
             snapshotYPos = hero.position.y //+ origYLoc;
 
@@ -173,26 +197,12 @@
             if (gridMovementToArrayMap(snapshotXPos + updatedX, snapshotYPos + updatedY) == 8){
                 goalReached = true;
                 firstPass = true;
-
-                // iterate through qtable to observe whether values are suitable
-                /*
-                for (i = 0; i < qtable.length; i++) {
-                    
-                    for (j = 0; j < qtable[i].length; j++) {
-                        console.log("qtable entries at [" + i + "][" + j + "] = " + qtable[i][j]);
-                    } 
-                }
-
-                console.log(" ");
-                */
             }
         }
  
         // render the stage   
         renderer.render(stage);
     }
-
-
 
 
 
@@ -335,35 +345,6 @@
 
         snapshotXPos = startingXY[0];
         snapshotYPos = startingXY[1];
-        console.log("constructed hero");
-
-/*
-        // begin a green fill..
-        hero.beginFill(0x000000);
-
-        // choose starting position
-        startingXY = randStartingPosition()
-
-        // draw a triangle using lines
-        hero.moveTo(startingXY[0],startingXY[1]);
-        hero.lineTo(startingXY[0] - 10, startingXY[1] + 30);
-        hero.lineTo(startingXY[0] + 10, startingXY[1] + 30);
-
-        // end the fill
-        hero.endFill();
-        // add it the stage so we see it on our screens..
-        stage.addChild(hero);
-
-        origXLoc = startingXY[0]; // hero.x;
-        origYLoc = startingXY[1]; // hero.y;
-
-
-        snapshotXPos = startingXY[0];
-        snapshotYPos = startingXY[1];
-
-        //console.log("constructHero: origXLoc = " + origXLoc);
-        //console.log("constructHero: origYLoc = " + origYLoc);
-*/
     }
 
     /*
