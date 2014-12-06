@@ -17,14 +17,26 @@
     var stage = new PIXI.Stage(0xffffff);
 
     // create scrolling background images
+    var spaceTexture = PIXI.Texture.fromImage("space.jpg");
+    var spaceBackground = new PIXI.Sprite(spaceTexture);
+    stage.addChild(spaceBackground);
+
     // le background 1
     var texture = PIXI.Texture.fromImage("gradient1.jpg");
     var background = new PIXI.Sprite(texture);
+    background.alpha = .5;
     stage.addChild(background);
     // le background 2
     var background2 = new PIXI.Sprite(texture);
     background2.position.x = 720;
+    background2.alpha = .5;
     stage.addChild(background2);
+
+    // le black background
+    var blackTexture = PIXI.Texture.fromImage("black.png");
+    var blackBackground = new PIXI.Sprite(blackTexture);
+    blackBackground.alpha = 0;
+    stage.addChild(blackBackground);
 
     var trackBackgroundPos = 0;
     var backBool = false;
@@ -58,8 +70,9 @@
     var previousMaxQResult = 0;
 
     var firstPass = true;
-
     var goalReached = false;
+    var backFlushTrans = false;
+    var chooseBackground = false;
 
     //var hero = new PIXI.Graphics();
     var texture1 = PIXI.Texture.fromImage("ship2.png");
@@ -121,43 +134,32 @@
     function animate() {
         requestAnimFrame( animate );
 
-        if (backBool == false){
-            background.position.x -= 5;
-            trackBackgroundPos += 5;
-            if (trackBackgroundPos >= 1190){
-                background2.position.x -= 5;
-                if (trackBackgroundPos >= 1920){
-                    background.position.x = 720;
-                    trackBackgroundPos = 0;
-                    backBool = true;
-                }
-            }
-        } else {
-            background2.position.x -= 5;
-            trackBackgroundPos += 5;
-            if (trackBackgroundPos >= 1190){
-                background.position.x -= 5;
-                if (trackBackgroundPos >= 1920){
-                    background2.position.x = 720;
-                    trackBackgroundPos = 0;
-                    backBool = false;
-                }
-            }
-        }
-
+        // animate le background
+        backgroundScroll();
 
         xMovementCheck = hero.position.x; //+ origXLoc;
         yMovementCheck = hero.position.y; //+ origYLoc;
         if ((xMovementCheck != snapshotXPos + updatedX) || (yMovementCheck != snapshotYPos + updatedY)){
             if (updatedX > 0){
-                hero.position.x += 2;
+                hero.position.x += 5;
             } else if (updatedX < 0) {
-                hero.position.x -= 2;
+                hero.position.x -= 5;
             }
             if (updatedY > 0){
-                hero.position.y += 2;
+                hero.position.y += 5;
             } else if (updatedY < 0) {
-                hero.position.y -= 2;
+                hero.position.y -= 5;
+            }
+
+           if (backFlushTrans == true){
+                //blackBackground.alpha += .5;
+                //if (blackBackground.alpha >= 1){
+                //    backFlushTrans = false;
+                //}
+                blackBackground.alpha = 1;
+                backFlushTrans = false;
+            } else {
+                blackBackground.alpha -= .02;
             }
         } else {
             if (goalReached == true){
@@ -167,7 +169,22 @@
                 stage.removeChild(hero);    // bobo revisit -- also add graphic.clear, make sure references removed
                 hero = new PIXI.Sprite(texture1);                
                 constructHero();
+
+                // begin background flush animation
+                backFlushTrans = true;
+                //backgroundFlush();
+                if (chooseBackground == false){
+                    background.texture = PIXI.Texture.fromImage("gradient2.jpg");
+                    background2.texture = PIXI.Texture.fromImage("gradient2.jpg");
+                    chooseBackground = true;
+                } else {
+                    background.texture = PIXI.Texture.fromImage("gradient1.jpg");
+                    background2.texture = PIXI.Texture.fromImage("gradient1.jpg");   
+                    chooseBackground = false;                
+                }
             }
+
+ 
 
             // update the position for hero to travel
             snapshotXPos = hero.position.x //+ origXLoc;
@@ -205,6 +222,41 @@
     }
 
 
+    /*
+     *
+     */
+    function backgroundFlush(){
+
+    }
+
+    /*
+     *
+     */
+    function backgroundScroll(){
+        if (backBool == false){
+            background.position.x -= 20;
+            trackBackgroundPos += 20;
+            if (trackBackgroundPos >= 1190){
+                background2.position.x -= 20;
+                if (trackBackgroundPos >= 1920){
+                    background.position.x = 720;
+                    trackBackgroundPos = 0;
+                    backBool = true;
+                }
+            }
+        } else {
+            background2.position.x -= 20;
+            trackBackgroundPos += 20;
+            if (trackBackgroundPos >= 1190){
+                background.position.x -= 20;
+                if (trackBackgroundPos >= 1920){
+                    background2.position.x = 720;
+                    trackBackgroundPos = 0;
+                    backBool = false;
+                }
+            }
+        }
+    }
 
 
     /*
