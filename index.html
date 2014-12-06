@@ -32,6 +32,11 @@
     background2.alpha = .5;
     stage.addChild(background2);
 
+    // draw le goal node
+    var starTexture = PIXI.Texture.fromImage("earth2.png");
+    var goal = new PIXI.Sprite(starTexture);
+    constructGoal();
+
     // le black background
     var blackTexture = PIXI.Texture.fromImage("black.png");
     var blackBackground = new PIXI.Sprite(blackTexture);
@@ -93,10 +98,12 @@
     var backFlushTrans = false;
     var chooseBackground = false;
 
-    //var hero = new PIXI.Graphics();
     var texture1 = PIXI.Texture.fromImage("ship2.png");
     var hero = new PIXI.Sprite(texture1);
     constructHero();
+
+
+
 
     // draw le enemies
     //var enemy1 = new PIXI.Graphics();
@@ -104,9 +111,9 @@
     //var enemy2 = new PIXI.Graphics();
     //constructEnemy(enemy2, 330, 210);
 
-    // draw le goal node
-    var goal = new PIXI.Graphics();
-    constructGoal(goal, 860, 380);
+
+    //var goal = new PIXI.Graphics();
+    //constructGoal(goal, 860, 380);
 
     // create Q table, 2d array
     var qtable = new Array(28);
@@ -569,11 +576,16 @@
      *
      */
      function constructGoal(g, x, y){
+        goal.position.x = 370;
+        goal.position.y = 190;
+        stage.addChild(goal);
+/*
         g.beginFill(0x000000);
         g.moveTo(x, y);
         g.drawRect(x, y, 20, 20);
         g.endFill();
         stage.addChild(g);
+*/
      }
 
     /*
