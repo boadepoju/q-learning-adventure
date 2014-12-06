@@ -39,6 +39,13 @@
     var xMovementCheck = 0;
     var yMovementCheck = 0;
 
+    var maxQResult = 0;
+
+    var previousRow = 0;
+    var previousMaxQResult = 0;
+
+    var firstPass = true;
+
     var goalReached = false;
 
     var hero = new PIXI.Graphics();
@@ -68,37 +75,37 @@
     // create R table, 2d array
     // set rewards matrix manually
     
-    var rewards = [[ -1,  0, -1,  0, -1, -1, -1, -1, -1  ],           // 1a
-                   [  0, -1,  0, -1,  0, -1, -1, -1, -1  ],           // 1b
-                   [ -1,  0, -1, -1, -1,  0, -1, -1, -1  ],           // 1c
-                   [  0, -1, -1, -1,  0, -1,  0, -1, -1  ],           // 2a
-                   [ -1,  0, -1,  0, -1,  0, -1,  0, -1  ],           // 2b
-                   [ -1, -1,  0, -1,  0, -1, -1, -1, 100 ],           // 2c
-                   [ -1, -1, -1,  0, -1, -1, -1,  0, -1  ],           // 3a
-                   [ -1, -1, -1, -1,  0, -1,  0, -1, 100 ],           // 3b
-                   [ -1, -1, -1, -1, -1,  0, -1, 0, -1   ]];          // 3c
+    var rewards = [[  -1,  0, -1,  0, -1, -1, -1, -1, -1  ],           // 1a
+                   [  0,  -1,  0, -1,  0, -1, -1, -1, -1  ],           // 1b
+                   [ -1,  0,  -1, -1, -1,  0, -1, -1, -1  ],           // 1c
+                   [  0, -1, -1,  -1,  0, -1,  0, -1, -1  ],           // 2a
+                   [ -1,  0, -1,  0,  -1,  0, -1,  0, -1  ],           // 2b
+                   [ -1, -1,  0, -1,  0,  -1, -1, -1, 100 ],           // 2c
+                   [ -1, -1, -1,  0, -1, -1,  -1,  0, -1  ],           // 3a
+                   [ -1, -1, -1, -1,  0, -1,  0,  -1, 100 ],           // 3b
+                   [ -1, -1, -1, -1, -1,  0, -1,  0, 100  ]];          // 3c
 
     
     // movement index
-    var xMov    = [[   -1,  60,  -1,   0,   -1,  -1,  -1,  -1,  -1  ],           // 1a
-                   [  -60,  -1,  60,  -1,    0,  -1,  -1,  -1,  -1  ],           // 1b
-                   [   -1, -60,  -1,  -1,   -1,   0,  -1,  -1,  -1  ],           // 1c
-                   [    0,  -1,  -1,  -1,   60,  -1,   0,  -1,  -1  ],           // 2a
-                   [   -1,   0,  -1, -60,   -1,  60,  -1,   0,  -1  ],           // 2b
-                   [   -1,  -1,   0,  -1,  -60,  -1,  -1,  -1,  0  ],            // 2c
-                   [   -1,  -1,  -1,   0,   -1,  -1,  -1,  60,  -1  ],           // 3a
-                   [   -1,  -1,  -1,  -1,    0,  -1, -60,  -1,  60  ],           // 3b
-                   [   -1,  -1,  -1,  -1,   -1,   0,  -1, -60,  -1  ]];          // 3c
+    var xMov    = [[    -1,  60,  -1,   0,   -1,  -1,  -1,  -1,  -1  ],           // 1a
+                   [  -60,   -1,  60,  -1,    0,  -1,  -1,  -1,  -1  ],           // 1b
+                   [   -1, -60,   -1,  -1,   -1,   0,  -1,  -1,  -1  ],           // 1c
+                   [    0,  -1,  -1,   -1,   60,  -1,   0,  -1,  -1  ],           // 2a
+                   [   -1,   0,  -1, -60,    -1,  60,  -1,   0,  -1  ],           // 2b
+                   [   -1,  -1,   0,  -1,  -60,   -1,  -1,  -1,  0  ],            // 2c
+                   [   -1,  -1,  -1,   0,   -1,  -1,   -1,  60,  -1  ],           // 3a
+                   [   -1,  -1,  -1,  -1,    0,  -1, -60,   -1,  60  ],           // 3b
+                   [   -1,  -1,  -1,  -1,   -1,   0,  -1, -60,   0  ]];          // 3c
 
-    var yMov    = [[   -1,    0,  -1,   60,  -1,  -1,  -1,  -1,  -1  ],           // 1a
-                   [    0,   -1,   0,   -1,  60,  -1,  -1,  -1,  -1  ],           // 1b
-                   [   -1,    0,  -1,   -1,  -1,  60,  -1,  -1,  -1  ],           // 1c
-                   [  -60,   -1,  -1,  - 1,   0,  -1,  60,  -1,  -1  ],           // 2a
-                   [   -1,  -60,  -1,    0,  -1,   0,  -1,  60,  -1  ],           // 2b
-                   [   -1,   -1, -60,   -1,   0,  -1,  -1,  -1,  60  ],           // 2c
-                   [   -1,   -1,  -1,  -60,  -1,  -1,  -1,   0,  -1  ],           // 3a
-                   [   -1,   -1,  -1,   -1, -60,  -1,   0,  -1,   0  ],           // 3b
-                   [   -1,   -1,  -1,   -1,  -1, -60,  -1,   0,  -1  ]];          // 3c
+    var yMov    = [[    -1,    0,  -1,   60,  -1,  -1,  -1,  -1,  -1  ],           // 1a
+                   [    0,    -1,   0,   -1,  60,  -1,  -1,  -1,  -1  ],           // 1b
+                   [   -1,    0,   -1,   -1,  -1,  60,  -1,  -1,  -1  ],           // 1c
+                   [  -60,   -1,  -1,    -1,   0,  -1,  60,  -1,  -1  ],           // 2a
+                   [   -1,  -60,  -1,    0,   -1,   0,  -1,  60,  -1  ],           // 2b
+                   [   -1,   -1, -60,   -1,   0,   -1,  -1,  -1,  60  ],           // 2c
+                   [   -1,   -1,  -1,  -60,  -1,  -1,   -1,   0,  -1  ],           // 3a
+                   [   -1,   -1,  -1,   -1, -60,  -1,   0,   -1,   0  ],           // 3b
+                   [   -1,   -1,  -1,   -1,  -1, -60,  -1,   0,   0  ]];          // 3c
 
 
     function animate() {
@@ -137,31 +144,40 @@
 
             // grid location to array mapping
             var row = gridMovementToArrayMap(snapshotXPos, snapshotYPos);
-            
-            // for whichever state we are in, find the max Q of next state's actions
-            var maxQResult = findMaxQ(row);
 
-            // perform Q calculation, store it in Q table
-            performQCalculation(row, maxQResult);
+            // for whichever state we are in, find the max Q of current states actions for navigation to next state
+            maxQResult = findMaxQ(row);
+
+            if (firstPass == false){
+                // perform Q calculation for next state (current state), store it in Q table for previous state
+                performQCalculation(previousRow, previousMaxQResult, row, maxQResult);
+            }
 
             // move hero to the state with highest found Q value from previous
             updatedX = xMov[row][maxQResult[1]];
             updatedY = yMov[row][maxQResult[1]];
 
+            previousRow = row;
+            previousMaxQResult = findMaxQ(row);
+
+            firstPass = false;
+
             // if goal node is found, restart position of hero to beginning
             if (gridMovementToArrayMap(snapshotXPos + updatedX, snapshotYPos + updatedY) == 8){
                 goalReached = true;
-
-
+                firstPass = true;
 
                 // iterate through qtable to observe whether values are suitable
+                /*
                 for (i = 0; i < qtable.length; i++) {
                     
                     for (j = 0; j < qtable[i].length; j++) {
                         console.log("qtable entries at [" + i + "][" + j + "] = " + qtable[i][j]);
                     } 
                 }
-                
+
+                console.log(" ");
+                */
             }
         }
  
@@ -191,9 +207,23 @@
     /*
      *
      */
-    function performQCalculation(row, maxQ){
-        var qCalculation = rewards[row][maxQ[1]] + (0.8 * maxQ[0]);
-        qtable[row][maxQ[1]] = qCalculation;
+    function performQCalculation(previousRow, previousMaxQ, row, maxQ){
+
+        var qCalculation = rewards[previousRow][previousMaxQ[1]] + (0.8 * maxQ[0]);
+
+        //console.log("performQCalculation: qCalculation = " + qCalculation);
+        qtable[previousRow][previousMaxQ[1]] = qCalculation;
+
+        /*
+        for (i = 0; i < qtable.length; i++) {
+            
+            for (j = 0; j < qtable[i].length; j++) {
+                console.log("qtable entries at [" + i + "][" + j + "] = " + qtable[i][j]);
+            } 
+        }
+
+        console.log(" ");
+        */
     }
 
     /*
@@ -211,6 +241,7 @@
                 if (qtable[row][i] > maxQ){
                     // highest Q value found and index are returned
                     maxQ = qtable[row][i];
+
                     indexFound = i;
                     qOnlyValid = true;
                 } else if (qtable[row][i] == maxQ){
@@ -227,6 +258,7 @@
                 if (rewards[row][i] != -1){
                     if (qtable[row][i] == maxQ){
                         locationsToRandomize.push(i);
+
                     }
                 }
             }
