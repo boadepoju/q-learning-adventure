@@ -61,7 +61,7 @@
     var backBool = false;
  
     // create a renderer instance.
-    var renderer = PIXI.autoDetectRenderer(1300, 480);
+    var renderer = PIXI.autoDetectRenderer(1700, 900);
  
     // add the renderer view element to the DOM
     document.body.appendChild(renderer.view);
@@ -120,9 +120,33 @@
         qtableText[i] = new Array(28);
     }
 
+    var labels = ["1a", "1b", "1c", "1d", "1e", "1f", "1g", "2a", "2b", "2c", "2d", "2e", "2f", "2g", "3a", "3b", "3c", "3d", "3e", "3f", "3g",
+                  "4a", "4b", "4c", "4d", "4e", "4f", "4g"];
+
+
+    // print labels once across top
+    labelInc = 550;
+    for (var i = 0; i < labels.length; i++){
+        var labelText = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
+        labelText.x = labelInc;
+        labelText.y = 10;
+        stage.addChild(labelText);     
+        labelInc += 40;  
+    }
+
     xTextInc = 550;
     yTextInc = 30;
     for (var i = 0; i < qtable.length; i++){
+        // add label
+        var labelTextLeft = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
+        labelTextLeft.x = xTextInc - 30;
+        labelTextLeft.y = yTextInc;
+        stage.addChild(labelTextLeft);
+        var labelTextRight = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
+        labelTextRight.x = 1670;
+        labelTextRight.y = yTextInc;
+        stage.addChild(labelTextRight);
+
         for (var j = 0; j < qtable[i].length; j++){
             var text = new PIXI.Text("0", {font:"13px Arial", fill:"white"});
             text.x = xTextInc;
@@ -133,6 +157,7 @@
         }
         yTextInc += 25;
         xTextInc = 550;
+
     } 
 
 
@@ -245,14 +270,14 @@
         yMovementCheck = hero.position.y; //+ origYLoc;
         if ((xMovementCheck != snapshotXPos + updatedX) || (yMovementCheck != snapshotYPos + updatedY)){
             if (updatedX > 0){
-                hero.position.x += 10;
+                hero.position.x += 5;
             } else if (updatedX < 0) {
-                hero.position.x -= 10;
+                hero.position.x -= 5;
             }
             if (updatedY > 0){
-                hero.position.y += 10;
+                hero.position.y += 5;
             } else if (updatedY < 0) {
-                hero.position.y -= 10;
+                hero.position.y -= 5;
             }
 
            if (backFlushTrans == true){
@@ -263,6 +288,13 @@
             }
         } else {
             if (goalReached == true){
+                // perform Q calculation of reaching goal node
+                // grid location to array mapping
+                var row = gridMovementToArrayMap(snapshotXPos, snapshotYPos);
+                // for whichever state we are in, find the max Q of current states actions for navigation to next state
+                maxQResult = findMaxQ(row, true);
+                performQCalculation(previousRow, previousMaxQResult, row, maxQResult);
+
                 goalReached = false;
                 //hero.clear();
                 hero.removeStageReference();
@@ -306,7 +338,7 @@
             updatedY = yMov[row][maxQResult[1]];
 
             previousRow = row;
-            previousMaxQResult = findMaxQ(row, false);
+            previousMaxQResult = maxQResult; // findMaxQ(row, false);
 
             firstPass = false;
 
@@ -380,8 +412,16 @@
 
         //console.log("performQCalculation: qCalculation = " + qCalculation);
         qtable[previousRow][previousMaxQ[1]] = qCalculation;
-
         qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
+
+        //console.log("performQCalculation: maxQ[0] = " + maxQ[0]);
+        //console.log("performQCalculation: previousRow = " + previousRow);
+        //console.log("performQCalculation: previousMaxQ[1] = " + previousMaxQ[1]);
+        //console.log("performQCalculation: rewards[previousRow] = " + rewards[previousRow][previousMaxQ[1]]);
+        //console.log("performQCalculation: qCalculation = " + qCalculation);
+
+        //console.log("");
+
 
         //qtableText[0][0].setText(1);
 
@@ -404,7 +444,7 @@
         var maxQ = 0;
         var indexFound = 0;
         var qOnlyValid = false;
-
+/*
         if (navigation == true){
             var randomEx = Math.random();
             if (randomEx <= 0.1){
@@ -422,7 +462,7 @@
                 return [maxQ, indexFound];
             }
         }
-
+*/
         // look at reward table to determine valid actions for current state.
         for (i = 0; i < rewards[row].length; i++){
             // only evaluate on valid actions
