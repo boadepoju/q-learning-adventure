@@ -14,7 +14,12 @@
     <script>
  
     // create an new instance of a pixi stage
-    var stage = new PIXI.Stage(0x66FF99);
+    var stage = new PIXI.Stage(0xffffff);
+
+    // create a texture from an image path
+    var texture = PIXI.Texture.fromImage("gradient1.jpg");
+    var background = new PIXI.Sprite(texture);
+    stage.addChild(background);
  
     // create a renderer instance.
     var renderer = PIXI.autoDetectRenderer(900, 420);
@@ -48,15 +53,17 @@
 
     var goalReached = false;
 
-    var hero = new PIXI.Graphics();
+    //var hero = new PIXI.Graphics();
+    var texture1 = PIXI.Texture.fromImage("ship2.png");
+    var hero = new PIXI.Sprite(texture1);
     constructHero();
 
  
     // draw le enemies
-    var enemy1 = new PIXI.Graphics();
-    constructEnemy(enemy1, 150, 30);
-    var enemy2 = new PIXI.Graphics();
-    constructEnemy(enemy2, 330, 210);
+    //var enemy1 = new PIXI.Graphics();
+    //constructEnemy(enemy1, 150, 30);
+    //var enemy2 = new PIXI.Graphics();
+    //constructEnemy(enemy2, 330, 210);
 
 
     // draw le goal node
@@ -111,26 +118,26 @@
     function animate() {
         requestAnimFrame( animate );
 
-        xMovementCheck = hero.x + origXLoc;
-        yMovementCheck = hero.y + origYLoc;
+        xMovementCheck = hero.position.x; //+ origXLoc;
+        yMovementCheck = hero.position.y; //+ origYLoc;
         if ((xMovementCheck != snapshotXPos + updatedX) || (yMovementCheck != snapshotYPos + updatedY)){
             if (updatedX > 0){
-                hero.x += 5;
+                hero.position.x += 2;
             } else if (updatedX < 0) {
-                hero.x -= 5;
+                hero.position.x -= 2;
             }
             if (updatedY > 0){
-                hero.y += 5;
+                hero.position.y += 2;
             } else if (updatedY < 0) {
-                hero.y -= 5;
+                hero.position.y -= 2;
             }
         } else {
             if (goalReached == true){
                 goalReached = false;
-                hero.clear();
+                //hero.clear();
                 hero.removeStageReference();
                 stage.removeChild(hero);    // bobo revisit -- also add graphic.clear, make sure references removed
-                hero = new PIXI.Graphics();
+                hero = new PIXI.Sprite(texture1);                
                 constructHero();
             }
 
@@ -139,14 +146,14 @@
             //console.log("hero.x = " + hero.x);
             //console.log("hero.y = " + hero.y);
 
-            snapshotXPos = hero.x + origXLoc;
-            snapshotYPos = hero.y + origYLoc;
+            snapshotXPos = hero.position.x //+ origXLoc;
+            snapshotYPos = hero.position.y //+ origYLoc;
 
             // grid location to array mapping
             var row = gridMovementToArrayMap(snapshotXPos, snapshotYPos);
 
             // for whichever state we are in, find the max Q of current states actions for navigation to next state
-            maxQResult = findMaxQ(row);
+            maxQResult = findMaxQ(row, true);
 
             if (firstPass == false){
                 // perform Q calculation for next state (current state), store it in Q table for previous state
@@ -158,7 +165,7 @@
             updatedY = yMov[row][maxQResult[1]];
 
             previousRow = row;
-            previousMaxQResult = findMaxQ(row);
+            previousMaxQResult = findMaxQ(row, false);
 
             firstPass = false;
 
@@ -197,9 +204,6 @@
         var row = Math.ceil(x / 60);
         var yCalc = Math.floor(y / 60);
         row += (yCalc * 3);
-        //console.log("gridMovementToArrayMap: x = " + x);
-        //console.log("gridMovementToArrayMap: y = " + y);
-        //console.log("gridMovementToArrayMap: row = " + (row - 1));
         return (row - 1); // mapping physical rows (1) to array (indexed from 0)
     }
 
@@ -229,10 +233,28 @@
     /*
      *
      */
-    function findMaxQ(row){
+    function findMaxQ(row, navigation){
         var maxQ = 0;
         var indexFound = 0;
         var qOnlyValid = false;
+
+        if (navigation == true){
+            var randomEx = Math.random();
+            if (randomEx <= 0.1){
+                var randomLocations = [];
+                // set navigation Q to random
+                for (i = 0; i < rewards[row].length; i++){
+                    if (rewards[row][i] != -1){
+                        randomLocations.push(i);
+                    }
+                }
+
+                indexFound = randomLocations[Math.floor(Math.random() * randomLocations.length)];
+                maxQ = qtable[row][indexFound];
+
+                return [maxQ, indexFound];
+            }
+        }
 
         // look at reward table to determine valid actions for current state.
         for (i = 0; i < rewards[row].length; i++){
@@ -280,12 +302,12 @@
          var x = 0;
 
          if (xAdj == 0){
-            x = 30;  
+            x = 10;  
          } else {
             if ((placement - 1) % 3 == 0){
-                x = 60 + 30;
+                x = 60 + 10;
             } else if ((placement - 2) % 3 == 0){
-                x = (2 * 60) + 30;
+                x = (2 * 60) + 10;
             } 
          }
 
@@ -299,6 +321,23 @@
      *
      */
     function constructHero(){   
+
+        // choose starting position
+        startingXY = randStartingPosition();    
+
+        hero.position.x = startingXY[0];
+        hero.position.y = startingXY[1];
+
+        stage.addChild(hero);
+
+        origXLoc = startingXY[0]; // hero.x;
+        origYLoc = startingXY[1]; // hero.y;
+
+        snapshotXPos = startingXY[0];
+        snapshotYPos = startingXY[1];
+        console.log("constructed hero");
+
+/*
         // begin a green fill..
         hero.beginFill(0x000000);
 
@@ -324,6 +363,7 @@
 
         //console.log("constructHero: origXLoc = " + origXLoc);
         //console.log("constructHero: origYLoc = " + origYLoc);
+*/
     }
 
     /*
