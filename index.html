@@ -66,12 +66,48 @@
     stage.addChild(bottomBackground);
 
     // le title text
-    /*
     var text = new PIXI.Text("Reinforced Learning Madness", {font:"17px Arial", fill:"white"});
-    text.x = 530;
+    text.x = 470;
     text.y = 20;
     stage.addChild(text);
-    */
+
+    // description text 1
+    var descripText1 = new PIXI.Text("Spaceship learns to reach", {font:"15px Arial", fill:"white"});
+    descripText1.x = 470;
+    descripText1.y = 70;
+    stage.addChild(descripText1);
+
+    // descripton image 1
+    var descripPlanet = new PIXI.Sprite(starTexture);
+    descripPlanet.position.x = 650;
+    descripPlanet.position.y = 50;
+    stage.addChild(descripPlanet);
+
+    // description text 2
+    var descripText2 = new PIXI.Text("while avoiding", {font:"15px Arial", fill:"white"});
+    descripText2.x = 470;
+    descripText2.y = 110;
+    stage.addChild(descripText2);
+
+    // description image 2
+    var descripAsteroid = new PIXI.Sprite(asteroidTexture);
+    descripAsteroid.position.x = 565;
+    descripAsteroid.position.y = 90;
+    stage.addChild(descripAsteroid);
+
+    // le iteration counter
+    var iterationText = new PIXI.Text("Iteration:", {font:"15px Arial", fill:"white"});
+    iterationText.x = 470;
+    iterationText.y = 180;
+    stage.addChild(iterationText);
+
+    var iterationCount = 0;
+    var iterationCounterText = new PIXI.Text("0", {font:"18px Arial", fill:"white"});
+    iterationCounterText.x = 540;
+    iterationCounterText.y = 180;
+    stage.addChild(iterationCounterText);
+
+
 
     var trackBackgroundPos = 0;
     var backBool = false;
@@ -144,42 +180,7 @@
                   "4a", "4b", "4c", "4d", "4e", "4f", "4g"];
 
 
-    // print labels once across top
-    labelInc = 550;
-    for (var i = 0; i < labels.length; i++){
-        var labelText = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
-        labelText.x = labelInc;
-        labelText.y = 10;
-        stage.addChild(labelText);     
-        labelInc += 40;  
-    }
-
-    xTextInc = 550;
-    yTextInc = 30;
-    for (var i = 0; i < qtable.length; i++){
-        // add label
-        var labelTextLeft = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
-        labelTextLeft.x = xTextInc - 30;
-        labelTextLeft.y = yTextInc;
-        stage.addChild(labelTextLeft);
-        var labelTextRight = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
-        labelTextRight.x = 1670;
-        labelTextRight.y = yTextInc;
-        stage.addChild(labelTextRight);
-
-        for (var j = 0; j < qtable[i].length; j++){
-            var text = new PIXI.Text("0", {font:"13px Arial", fill:"white"});
-            text.x = xTextInc;
-            text.y = yTextInc;
-            stage.addChild(text);
-            xTextInc += 40;
-            qtableText[i][j] = text;
-        }
-        yTextInc += 25;
-        xTextInc = 550;
-
-    } 
-
+    //createQTableDisplay();
 
 
     // create R table, 2d array
@@ -334,9 +335,12 @@
                     background2.texture = PIXI.Texture.fromImage("gradient1.jpg");   
                     chooseBackground = false;                
                 }
+
+                // increment iterationCount for textView
+                iterationCount += 1;
+                iterationCounterText.setText(iterationCount);
             }
 
- 
 
             // update the position for hero to travel
             snapshotXPos = hero.position.x //+ origXLoc;
@@ -362,7 +366,6 @@
 
             firstPass = false;
 
-
             // if goal node is found, restart position of hero to beginning
             movementResult = gridMovementToArrayMap(snapshotXPos + updatedX, snapshotYPos + updatedY) 
             if ((movementResult == 27) || (movementResult == 10) || (movementResult == 23)){
@@ -373,6 +376,48 @@
  
         // render the stage   
         renderer.render(stage);
+    }
+
+
+    /*
+     *
+     */
+    function createQTableDisplay(){
+        // print labels once across top
+        labelInc = 550;
+        for (var i = 0; i < labels.length; i++){
+            var labelText = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
+            labelText.x = labelInc;
+            labelText.y = 10;
+            stage.addChild(labelText);     
+            labelInc += 40;  
+        }
+
+        xTextInc = 550;
+        yTextInc = 30;
+        for (var i = 0; i < qtable.length; i++){
+            // add label
+            var labelTextLeft = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
+            labelTextLeft.x = xTextInc - 30;
+            labelTextLeft.y = yTextInc;
+            stage.addChild(labelTextLeft);
+            var labelTextRight = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
+            labelTextRight.x = 1670;
+            labelTextRight.y = yTextInc;
+            stage.addChild(labelTextRight);
+
+            for (var j = 0; j < qtable[i].length; j++){
+                var text = new PIXI.Text("0", {font:"13px Arial", fill:"white"});
+                text.x = xTextInc;
+                text.y = yTextInc;
+                stage.addChild(text);
+                xTextInc += 40;
+                qtableText[i][j] = text;
+            }
+            yTextInc += 25;
+            xTextInc = 550;
+
+        } 
     }
 
 
@@ -433,7 +478,7 @@
 
         //console.log("performQCalculation: qCalculation = " + qCalculation);
         qtable[previousRow][previousMaxQ[1]] = qCalculation;
-        qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
+        //qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
 
         //console.log("performQCalculation: maxQ[0] = " + maxQ[0]);
         //console.log("performQCalculation: previousRow = " + previousRow);
