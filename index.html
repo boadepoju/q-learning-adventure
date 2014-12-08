@@ -16,6 +16,7 @@
     var displayModal = false;
     var regularLearning = true;
     var delayedLearning = false;
+    var doubleLearning = false;
  
     // create an new instance of a pixi stage
     var stage = new PIXI.Stage(0xffffff, true);
@@ -116,12 +117,18 @@
     var delayedText = new PIXI.Text("Delayed", {font:"17px Arial", fill:"white"});
     createDelayedButton();
 
+    // add double learning button
+    var doubleButton = new PIXI.Graphics();
+    var doubleText = new PIXI.Text("Double", {font:"17px Arial", fill:"white"});
+    createDoubleButton();
+
     detailsText.click = function(mouseData){
        console.log("CLICK!");
        //displayModal = true;
        goalReached = true;
        regularLearning = true;
        delayedLearning = false;
+       doubleLearning = false;
 
         qtable = new Array(28);
         for (var qxIterator = 0; qxIterator < 28; qxIterator++){
@@ -139,10 +146,34 @@
        goalReached = true;
        delayedLearning = true;
        regularLearning = false;
+       doubleLearning = false;
 
         qtable = new Array(28);
         for (var qxIterator = 0; qxIterator < 28; qxIterator++){
             qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
+        // reset iteration count
+        iterationCount = 0;
+        iterationCounterText.setText(iterationCount);
+    }
+
+    doubleText.click = function(mouseData){
+       console.log("CLICK!");
+       //displayModal = true;
+       goalReached = true;
+       doubleLearning = true;
+       delayedLearning = false;
+       regularLearning = false;
+
+        qtable = new Array(28);
+        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+            qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
+        doubleBTable = new Array(28);
+        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+            doubleBTable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         }
 
         // reset iteration count
@@ -272,6 +303,18 @@
     delayedEpsilon = .8;
     //
     // End of delayed Q-Learning specific data sets
+    //
+
+
+    //
+    // double q-learning specific data sets
+    //
+    var doubleBTable = new Array(28);
+    for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+        doubleBTable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+    //
+    // End of double q-learning specific data sets
     //
 
 
@@ -458,8 +501,13 @@
             }
 
             // move hero to the state with highest found Q value from previous
-            updatedX = xMov[row][maxQResult[1]];
-            updatedY = yMov[row][maxQResult[1]];
+            if (doubleLearning == false){
+                updatedX = xMov[row][maxQResult[1]];
+                updatedY = yMov[row][maxQResult[1]];
+            } else {
+                updatedX = xMov[row][maxQResult[5]];
+                updatedY = yMov[row][maxQResult[5]];
+            }
 
             previousRow = row;
             previousMaxQResult = maxQResult; // findMaxQ(row, false);
@@ -577,9 +625,7 @@
             var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[previousRow][previousMaxQ[1]] + maxQ[0] - qtable[previousRow][previousMaxQ[1]])); 
             qtable[previousRow][previousMaxQ[1]] = qCalculation;
             qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
-        }
-
-        if (delayedLearning == true){
+        } else if (delayedLearning == true){
             if (delayedLearnFlags[previousRow][previousMaxQ[1]] == true){
                 console.log("delayed learning 0");
                 delayedAttemptedUpdates[previousRow][previousMaxQ[1]] += rewards[previousRow][previousMaxQ[1]] + maxQ[0];
@@ -603,6 +649,21 @@
                 delayedLearnFlags[previousRow][previousMaxQ[1]] = true;
                 console.log("delayed learning 4");
             }
+        } else if (doubleLearning == true){
+
+            // choose randomly between A q-table and B q-table
+            var qTableChoice = Math.floor(Math.random()*(2)+1);
+
+            if (qTableChoice == 1){
+                // A q-table
+                var qCalculation = qtable[previousRow][previousMaxQ[5]] + (0.8 * (rewards[previousRow][previousMaxQ[5]] + maxQ[2] - qtable[previousRow][previousMaxQ[5]])); 
+                qtable[previousRow][previousMaxQ[5]] = qCalculation;
+            } else if (qTableChoice == 2){
+                // B q-table
+                var qCalculation = doubleBTable[previousRow][previousMaxQ[5]] + (0.8 * (rewards[previousRow][previousMaxQ[5]] + maxQ[0] - doubleBTable[previousRow][previousMaxQ[5]])); 
+                doubleBTable[previousRow][previousMaxQ[5]] = qCalculation;         
+            }
+
         }
     }
 
@@ -611,8 +672,14 @@
      */
     function findMaxQ(row, navigation){
         var maxQ = 0;
+        var maxQB = 0;
+        var doubleAbsoluteQ = 0;
         var indexFound = 0;
+        var indexFoundB = 0;
+        var doubleAbsoluteIndex = 0;
         var qOnlyValid = false;
+        var qBOnlyValid = false;
+        var doubleAbsoluteValid = false;
 
         // look at reward table to determine valid actions for current state.
         for (i = 0; i < rewards[row].length; i++){
@@ -627,8 +694,39 @@
                 } else if (qtable[row][i] == maxQ){
                     qOnlyValid = false;
                 }
+
+                // if double learning enabled, do same for B array
+                if (doubleLearning == true){
+                    if (doubleBTable[row][i] > maxQB){
+                        // highest Q value found and index are returned
+                        maxQB = doubleBTable[row][i];
+
+                        indexFoundB = i;
+                        qBOnlyValid = true;
+                    } else if (doubleBTable[row][i] == maxQB){
+                        qBOnlyValid = false;
+                    }
+                }
             }
         }
+
+        // find absolute maxQ if double learning
+        if (doubleLearning == true){
+            if (maxQB > maxQ){
+                doubleAbsoluteQ = maxQB; 
+                doubleAbsoluteIndex = indexFoundB;
+                doubleAbsoluteValid = true;
+            } else if (maxQB < maxQ) {
+                doubleAbsoluteQ = maxQ;
+                doubleAbsoluteIndex = indexFound;
+                doubleAbsoluteValid = true;
+            } else {
+                doubleAbsoluteQ = maxQ;
+                doubleAbsoluteIndex = indexFound;
+                doubleAbsoluteValid = false;
+            }
+        }
+
 
         if (qOnlyValid == false){
             var locationsToRandomize = [];
@@ -638,7 +736,6 @@
                 if (rewards[row][i] != -1){
                     if (qtable[row][i] == maxQ){
                         locationsToRandomize.push(i);
-
                     }
                 }
             }
@@ -647,7 +744,45 @@
             indexFound = locationsToRandomize[Math.floor(Math.random() * locationsToRandomize.length)];
         }
 
-        return [maxQ, indexFound];
+        // if double learning, randomize locations for b-table
+        if (doubleLearning == true){
+            if (qBOnlyValid == false){
+                var locationsToRandomizeB = [];
+                for (var i = 0; i < rewards[row].length; i++){
+                    if (rewards[row][i] != -1){
+                        if (doubleBTable[row][i] == maxQB){
+                            locationsToRandomizeB.push(i);
+                        }                      
+                    }
+                }
+
+                // set indexFoundB to one of the locationsToRandomizeB values randomly
+                indexFoundB = locationsToRandomizeB[Math.floor(Math.random() * locationsToRandomizeB.length)];
+            }
+
+            if (doubleAbsoluteValid == false){
+                // find absolute locationsToRandomize
+                var doubleAbsoluteRandomize = [];
+                for (var i = 0; i < rewards[row].length; i++){
+                    if (rewards[row][i] != -1){
+                        // a-table
+                        if (qtable[row][i] == doubleAbsoluteQ){
+                            doubleAbsoluteRandomize.push(i);
+                        }
+
+                        // b-table
+                        if (doubleBTable[row][i] == doubleAbsoluteQ){
+                            doubleAbsoluteRandomize.push(i);
+                        }                      
+                    }                
+                }
+
+                // set doubleAbsoluteIndex to doubleAbsoluteRandomize values randomly
+                doubleAbsoluteIndex = doubleAbsoluteRandomize[Math.floor(Math.random() * doubleAbsoluteRandomize.length)];
+            }
+        }
+
+        return [maxQ, indexFound, maxQB, indexFoundB, doubleAbsoluteQ, doubleAbsoluteIndex];
     }
 
     /*
@@ -818,6 +953,24 @@
         delayedText.y = 195;
         delayedText.interactive = true;
         stage.addChild(delayedText);
+    }
+
+    /*
+     *
+     */
+    function createDoubleButton(){
+        doubleButton.beginFill(0x4040c4);
+        doubleButton.moveTo(670, 185);
+        doubleButton.drawRect(670, 185, 80, 35);
+        doubleButton.endFill();
+        //dashboardButton.setInteractive(true);
+        stage.addChild(doubleButton);
+
+        // add text for details button
+        doubleText.x = 685;
+        doubleText.y = 195;
+        doubleText.interactive = true;
+        stage.addChild(doubleText);    
     }
  
     </script>
