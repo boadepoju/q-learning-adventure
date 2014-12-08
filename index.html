@@ -14,7 +14,7 @@
     <script>
  
     // create an new instance of a pixi stage
-    var stage = new PIXI.Stage(0xffffff);
+    var stage = new PIXI.Stage(0xffffff, true);
 
     // create scrolling background images
     var spaceTexture = PIXI.Texture.fromImage("space.jpg");
@@ -98,16 +98,37 @@
     // le iteration counter
     var iterationText = new PIXI.Text("Iteration:", {font:"15px Arial", fill:"white"});
     iterationText.x = 470;
-    iterationText.y = 180;
+    iterationText.y = 150;
     stage.addChild(iterationText);
 
     var iterationCount = 0;
     var iterationCounterText = new PIXI.Text("0", {font:"18px Arial", fill:"white"});
     iterationCounterText.x = 540;
-    iterationCounterText.y = 180;
+    iterationCounterText.y = 150;
     stage.addChild(iterationCounterText);
 
+    // add details / dashboard button
+    var dashboardButton = new PIXI.Graphics();
+    dashboardButton.beginFill(0x4040c4);
+    dashboardButton.moveTo(470, 185);
+    dashboardButton.drawRect(470, 185, 80, 35);
+    dashboardButton.endFill();
+    //dashboardButton.setInteractive(true);
+    stage.addChild(dashboardButton);
 
+    // add text for details button
+    var detailsText = new PIXI.Text("Details", {font:"17px Arial", fill:"white"});
+    detailsText.x = 485;
+    detailsText.y = 195;
+    detailsText.interactive = true;
+    stage.addChild(detailsText);
+
+    var displayModal = false;
+
+    detailsText.click = function(mouseData){
+       console.log("CLICK!");
+       displayModal = true;
+    }
 
     var trackBackgroundPos = 0;
     var backBool = false;
@@ -180,7 +201,13 @@
                   "4a", "4b", "4c", "4d", "4e", "4f", "4g"];
 
 
-    //createQTableDisplay();
+    // le details modal black background
+    var detailsModalBackground = new PIXI.Sprite(blackTexture);
+    detailsModalBackground.alpha = 0;
+    detailsModalBackground.position.x = 420;
+    stage.addChild(detailsModalBackground);
+
+    createQTableDisplay();
 
 
     // create R table, 2d array
@@ -287,6 +314,14 @@
         // animate le background
         backgroundScroll();
 
+        // display modal if true
+        if (displayModal == true){
+            detailsModalBackground.alpha += 0.1
+            if (detailsModalBackground.alpha >= 1){
+                displayModal = false;
+            }
+        }
+
         xMovementCheck = hero.position.x; //+ origXLoc;
         yMovementCheck = hero.position.y; //+ origYLoc;
         if ((xMovementCheck != snapshotXPos + updatedX) || (yMovementCheck != snapshotYPos + updatedY)){
@@ -389,7 +424,7 @@
             var labelText = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
             labelText.x = labelInc;
             labelText.y = 10;
-            stage.addChild(labelText);     
+            detailsModalBackground.addChild(labelText);     
             labelInc += 40;  
         }
 
@@ -400,17 +435,17 @@
             var labelTextLeft = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
             labelTextLeft.x = xTextInc - 30;
             labelTextLeft.y = yTextInc;
-            stage.addChild(labelTextLeft);
+            detailsModalBackground.addChild(labelTextLeft);
             var labelTextRight = new PIXI.Text(labels[i], {font:"13px Arial", fill:"white"});
             labelTextRight.x = 1670;
             labelTextRight.y = yTextInc;
-            stage.addChild(labelTextRight);
+            detailsModalBackground.addChild(labelTextRight);
 
             for (var j = 0; j < qtable[i].length; j++){
                 var text = new PIXI.Text("0", {font:"13px Arial", fill:"white"});
                 text.x = xTextInc;
                 text.y = yTextInc;
-                stage.addChild(text);
+                detailsModalBackground.addChild(text);
                 xTextInc += 40;
                 qtableText[i][j] = text;
             }
@@ -478,7 +513,7 @@
 
         //console.log("performQCalculation: qCalculation = " + qCalculation);
         qtable[previousRow][previousMaxQ[1]] = qCalculation;
-        //qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
+        qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
 
         //console.log("performQCalculation: maxQ[0] = " + maxQ[0]);
         //console.log("performQCalculation: previousRow = " + previousRow);
