@@ -12,6 +12,10 @@
 </head>
 <body>
     <script>
+
+    var displayModal = false;
+    var regularLearning = true;
+    var delayedLearning = false;
  
     // create an new instance of a pixi stage
     var stage = new PIXI.Stage(0xffffff, true);
@@ -42,11 +46,6 @@
     var enemy1 = new PIXI.Sprite(asteroidTexture);
     var enemy2 = new PIXI.Sprite(asteroidTexture);
     constructEnemies();
-
-    //var enemy1 = new PIXI.Graphics();
-    //constructEnemy(enemy1, 150, 30);
-    //var enemy2 = new PIXI.Graphics();
-    //constructEnemy(enemy2, 330, 210);
 
     // le black background
     var blackTexture = PIXI.Texture.fromImage("black.png");
@@ -107,27 +106,48 @@
     iterationCounterText.y = 150;
     stage.addChild(iterationCounterText);
 
-    // add details / dashboard button
+    // add regular learning button
     var dashboardButton = new PIXI.Graphics();
-    dashboardButton.beginFill(0x4040c4);
-    dashboardButton.moveTo(470, 185);
-    dashboardButton.drawRect(470, 185, 80, 35);
-    dashboardButton.endFill();
-    //dashboardButton.setInteractive(true);
-    stage.addChild(dashboardButton);
+    var detailsText = new PIXI.Text("Regular", {font:"17px Arial", fill:"white"});
+    createRegularButton();
 
-    // add text for details button
-    var detailsText = new PIXI.Text("Details", {font:"17px Arial", fill:"white"});
-    detailsText.x = 485;
-    detailsText.y = 195;
-    detailsText.interactive = true;
-    stage.addChild(detailsText);
-
-    var displayModal = false;
+    // add delayed learning button
+    var delayedButton = new PIXI.Graphics();
+    var delayedText = new PIXI.Text("Delayed", {font:"17px Arial", fill:"white"});
+    createDelayedButton();
 
     detailsText.click = function(mouseData){
        console.log("CLICK!");
-       displayModal = true;
+       //displayModal = true;
+       goalReached = true;
+       regularLearning = true;
+       delayedLearning = false;
+
+        qtable = new Array(28);
+        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+            qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
+        // reset iteration count
+        iterationCount = 0;
+        iterationCounterText.setText(iterationCount);
+    }
+
+    delayedText.click = function(mouseData){
+       console.log("CLICK!");
+       //displayModal = true;
+       goalReached = true;
+       delayedLearning = true;
+       regularLearning = false;
+
+        qtable = new Array(28);
+        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+            qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
+        // reset iteration count
+        iterationCount = 0;
+        iterationCounterText.setText(iterationCount);
     }
 
     var trackBackgroundPos = 0;
@@ -167,6 +187,10 @@
     var goalReached = false;
     var backFlushTrans = false;
     var chooseBackground = false;
+
+    // q value rates
+    var learningRate = 0.8;
+    var explorationRate = 0.1;
 
     var texture1 = PIXI.Texture.fromImage("ship2.png");
     var hero = new PIXI.Sprite(texture1);
@@ -208,6 +232,47 @@
     stage.addChild(detailsModalBackground);
 
     createQTableDisplay();
+
+
+    //
+    // Delayed Q-Learning specific data sets
+    //
+    // delayed q-learning attempted updates
+    //
+    var delayedAttemptedUpdates = new Array(28);
+    for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+        delayedAttemptedUpdates[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    // counter values for each step
+    //
+    var delayedCounters = new Array(28);
+    for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+        delayedCounters[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    // time of last attempted update
+    //
+    var delayedTimes = new Array(28);
+    for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+        delayedTimes[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    // learn flags
+    //
+    var delayedLearnFlags = new Array(28);
+    for (var qxIterator = 0; qxIterator < 28; qxIterator++){
+        delayedLearnFlags[qxIterator] = [true, true, true, true, true, true, true, true, true, true, true, true, true,
+                                         true, true, true, true, true, true, true, true, true, true, true, true, true, 
+                                         true, true];
+    }
+
+    delayedMostRecentTime = 0;
+    delayedSampleAmount = 5;
+    delayedEpsilon = .8;
+    //
+    // End of delayed Q-Learning specific data sets
+    //
 
 
     // create R table, 2d array
@@ -508,34 +573,37 @@
      *
      */
     function performQCalculation(previousRow, previousMaxQ, row, maxQ){
-
-        var qCalculation = rewards[previousRow][previousMaxQ[1]] + (0.8 * maxQ[0]);
-
-        //console.log("performQCalculation: qCalculation = " + qCalculation);
-        qtable[previousRow][previousMaxQ[1]] = qCalculation;
-        qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
-
-        //console.log("performQCalculation: maxQ[0] = " + maxQ[0]);
-        //console.log("performQCalculation: previousRow = " + previousRow);
-        //console.log("performQCalculation: previousMaxQ[1] = " + previousMaxQ[1]);
-        //console.log("performQCalculation: rewards[previousRow] = " + rewards[previousRow][previousMaxQ[1]]);
-        //console.log("performQCalculation: qCalculation = " + qCalculation);
-
-        //console.log("");
-
-
-        //qtableText[0][0].setText(1);
-
-        /*
-        for (i = 0; i < qtable.length; i++) {
-            
-            for (j = 0; j < qtable[i].length; j++) {
-                console.log("qtable entries at [" + i + "][" + j + "] = " + qtable[i][j]);
-            } 
+        if (regularLearning == true){
+            var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[previousRow][previousMaxQ[1]] + maxQ[0] - qtable[previousRow][previousMaxQ[1]])); 
+            qtable[previousRow][previousMaxQ[1]] = qCalculation;
+            qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
         }
 
-        console.log(" ");
-        */
+        if (delayedLearning == true){
+            if (delayedLearnFlags[previousRow][previousMaxQ[1]] == true){
+                console.log("delayed learning 0");
+                delayedAttemptedUpdates[previousRow][previousMaxQ[1]] += rewards[previousRow][previousMaxQ[1]] + maxQ[0];
+                delayedCounters[previousRow][previousMaxQ[1]] += 1;
+
+                if (delayedCounters[previousRow][previousMaxQ[1]] == delayedSampleAmount){
+                    if (qtable[previousRow][previousMaxQ[1]] - (delayedAttemptedUpdates[previousRow][previousMaxQ[1]] / delayedSampleAmount) >= (2 * delayedEpsilon)){
+                        qtable[previousRow][previousMaxQ[1]] = delayedAttemptedUpdates[previousRow][previousMaxQ[1]] + delayedEpsilon;
+                        delayedMostRecentTime = iterationCount;
+                        console.log("delayed learning 1");
+                    } else if (delayedTimes[previousRow][previousMaxQ[1]] >= delayedMostRecentTime){
+                        delayedLearnFlags[previousRow][previousMaxQ[1]] = false;
+                        console.log("delayed learning 2");
+                    } 
+                    delayedTimes[previousRow][previousMaxQ[1]] = iterationCount;
+                    delayedAttemptedUpdates[previousRow][previousMaxQ[1]] = 0;
+                    delayedLearnFlags[previousRow][previousMaxQ[1]] = 0;
+                    console.log("delayed learning 3");
+                }
+            } else if (delayedTimes[previousRow][previousMaxQ[1]] < delayedMostRecentTime){
+                delayedLearnFlags[previousRow][previousMaxQ[1]] = true;
+                console.log("delayed learning 4");
+            }
+        }
     }
 
     /*
@@ -545,25 +613,7 @@
         var maxQ = 0;
         var indexFound = 0;
         var qOnlyValid = false;
-/*
-        if (navigation == true){
-            var randomEx = Math.random();
-            if (randomEx <= 0.1){
-                var randomLocations = [];
-                // set navigation Q to random
-                for (i = 0; i < rewards[row].length; i++){
-                    if (rewards[row][i] != -1){
-                        randomLocations.push(i);
-                    }
-                }
 
-                indexFound = randomLocations[Math.floor(Math.random() * randomLocations.length)];
-                maxQ = qtable[row][indexFound];
-
-                return [maxQ, indexFound];
-            }
-        }
-*/
         // look at reward table to determine valid actions for current state.
         for (i = 0; i < rewards[row].length; i++){
             // only evaluate on valid actions
@@ -732,6 +782,42 @@
                 addingElements = false;
             }    
         }
+    }
+
+    /*
+     *
+     */
+    function createRegularButton(){
+        dashboardButton.beginFill(0x4040c4);
+        dashboardButton.moveTo(470, 185);
+        dashboardButton.drawRect(470, 185, 80, 35);
+        dashboardButton.endFill();
+        //dashboardButton.setInteractive(true);
+        stage.addChild(dashboardButton);
+
+        // add text for details button
+        detailsText.x = 480;
+        detailsText.y = 195;
+        detailsText.interactive = true;
+        stage.addChild(detailsText);
+    }
+
+    /*
+     *
+     */
+    function createDelayedButton(){
+        delayedButton.beginFill(0x4040c4);
+        delayedButton.moveTo(570, 185);
+        delayedButton.drawRect(570, 185, 80, 35);
+        delayedButton.endFill();
+        //dashboardButton.setInteractive(true);
+        stage.addChild(delayedButton);
+
+        // add text for details button
+        delayedText.x = 580;
+        delayedText.y = 195;
+        delayedText.interactive = true;
+        stage.addChild(delayedText);
     }
  
     </script>
