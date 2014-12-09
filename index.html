@@ -261,7 +261,6 @@
 
     speedyButtonOverlay.click = function(mouseData){
        // disable for now
-       /*
        console.log("CLICK!");
        //displayModal = true;
        goalReached = true;
@@ -283,14 +282,17 @@
         iterationCount = 0;
         iterationCounterText.setText(iterationCount);
 
+        // reset reward count
+        totalRewardCount = 0;
+        totalRewardCountText.setText(totalRewardCount);
+
         // tint color
         detailsText.tint = 0xffffff;
         delayedText.tint = 0xffffff;
         doubleText.tint = 0xffffff;
         speedyText.tint = 0xffff00;
 
-        //detailsModalBackground.alpha = 1;
-        */
+        detailsModalBackground.alpha = 1;
     }
 
     var trackBackgroundPos = 0;
@@ -781,6 +783,7 @@
                 // A q-table
                 var qCalculation = qtable[previousRow][previousMaxQ[5]] + (0.8 * (rewards[previousRow][previousMaxQ[5]] + maxQ[2] - qtable[previousRow][previousMaxQ[5]])); 
                 qtable[previousRow][previousMaxQ[5]] = qCalculation;
+                qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
             } else if (qTableChoice == 2){
                 // B q-table
                 var qCalculation = doubleBTable[previousRow][previousMaxQ[5]] + (0.8 * (rewards[previousRow][previousMaxQ[5]] + maxQ[0] - doubleBTable[previousRow][previousMaxQ[5]])); 
@@ -788,12 +791,13 @@
             }
 
         } else if (speedyLearning == true){
+            // (0.8 * (delayedReward + maxQ[0]));
             //var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[previousRow][previousMaxQ[1]] + maxQ[0] - qtable[previousRow][previousMaxQ[1]])); 
-            var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[prevPrevRow][prevPrevMaxQResult[1]] + previousMaxQ[0] - qtable[previousRow][previousMaxQ[1]])) + (0.2 * (rewards[previousRow][previousMaxQ[1]] + maxQ[0]) - (rewards[prevPrevRow][prevPrevMaxQResult[1]] + previousMaxQ[0]));
+            //var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[prevPrevRow][prevPrevMaxQResult[1]] + previousMaxQ[0] - qtable[previousRow][previousMaxQ[1]])) + (0.2 * (rewards[previousRow][previousMaxQ[1]] + maxQ[0]) - (rewards[prevPrevRow][prevPrevMaxQResult[1]] + previousMaxQ[0]));
             //var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[previousRow][previousMaxQ[1]] + maxQ[0] - qtable[previousRow][previousMaxQ[1]])); 
-
+            var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[previousRow][previousMaxQ[1]] + previousMaxQ[0])) + (0.2 * ((rewards[previousRow][previousMaxQ[1]] + maxQ[0]) - (rewards[previousRow][previousMaxQ[1]] + previousMaxQ[0])));
             qtable[previousRow][previousMaxQ[1]] = qCalculation;    
-            //qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
+            qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
         }
     }
 
