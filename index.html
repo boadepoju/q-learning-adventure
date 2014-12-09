@@ -179,6 +179,9 @@
         delayedText.tint = 0xffffff;
         doubleText.tint = 0xffffff;
         speedyText.tint = 0xffffff;
+
+        detailsModalBackground.alpha = 1;
+
     }
 
     delayedButtonOverlay.click = function(mouseData){
@@ -192,7 +195,7 @@
 
         qtable = new Array(28);
         for (var qxIterator = 0; qxIterator < 28; qxIterator++){
-            qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            qtable[qxIterator] = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
         }
 
         // reset iteration count
@@ -208,6 +211,8 @@
         delayedText.tint = 0xffff00;
         doubleText.tint = 0xffffff;
         speedyText.tint = 0xffffff;
+
+        detailsModalBackground.alpha = 1;
     }
 
     doubleButtonOverlay.click = function(mouseData){
@@ -393,8 +398,8 @@
     }
 
     delayedMostRecentTime = 0;
-    delayedSampleAmount = 5;
-    delayedEpsilon = .8;
+    delayedSampleAmount = 2;
+    delayedEpsilon = .05;
     //
     // End of delayed Q-Learning specific data sets
     //
@@ -457,7 +462,7 @@
                    [  -1, -1, -1, -1, -1,-60, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 1g
                    [   0, -1, -1, -1, -1, -1, -1, -1, 60, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 2a
                    [  -1,  0, -1, -1, -1, -1, -1,-60, -1, 60, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 2b
-                   [  -1, -1,  0, -1, -1, -1, -1, -1, 60, -1, 60, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 2c
+                   [  -1, -1,  0, -1, -1, -1, -1, -1,-60, -1, 60, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 2c
                    [  -1, -1, -1,  0, -1, -1, -1, -1, -1,-60, -1, 60, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 2d
                    [  -1, -1, -1, -1,  0, -1, -1, -1, -1, -1,-60, -1, 60, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1, -1], // 2e
                    [  -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1,-60, -1, 60, -1, -1, -1, -1, -1,  0, -1, -1, -1, -1, -1, -1, -1, -1], // 2f
@@ -732,16 +737,25 @@
         if (regularLearning == true){
             var qCalculation = qtable[previousRow][previousMaxQ[1]] + (0.8 * (rewards[previousRow][previousMaxQ[1]] + maxQ[0] - qtable[previousRow][previousMaxQ[1]])); 
             qtable[previousRow][previousMaxQ[1]] = qCalculation;
-            //qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
+            qtableText[previousRow][previousMaxQ[1]].setText(qCalculation);
         } else if (delayedLearning == true){
             if (delayedLearnFlags[previousRow][previousMaxQ[1]] == true){
                 //console.log("delayed learning 0");
-                delayedAttemptedUpdates[previousRow][previousMaxQ[1]] += rewards[previousRow][previousMaxQ[1]] + maxQ[0];
+                //delayedAttemptedUpdates[previousRow][previousMaxQ[1]] += rewards[previousRow][previousMaxQ[1]] + maxQ[0];
+                var delayedReward = 0;
+                if (rewards[previousRow][previousMaxQ[1]] == 100){
+                    delayedReward = 1;
+                } else {
+                    delayedReward = rewards[previousRow][previousMaxQ[1]];
+                }
+                delayedAttemptedUpdates[previousRow][previousMaxQ[1]] += (0.8 * (delayedReward + maxQ[0]));
                 delayedCounters[previousRow][previousMaxQ[1]] += 1;
 
                 if (delayedCounters[previousRow][previousMaxQ[1]] == delayedSampleAmount){
                     if (qtable[previousRow][previousMaxQ[1]] - (delayedAttemptedUpdates[previousRow][previousMaxQ[1]] / delayedSampleAmount) >= (2 * delayedEpsilon)){
-                        qtable[previousRow][previousMaxQ[1]] = delayedAttemptedUpdates[previousRow][previousMaxQ[1]] + delayedEpsilon;
+                        var delayedQCalculation = (delayedAttemptedUpdates[previousRow][previousMaxQ[1]] / delayedSampleAmount) + delayedEpsilon;
+                        qtable[previousRow][previousMaxQ[1]] = delayedQCalculation;
+                        qtableText[previousRow][previousMaxQ[1]].setText(delayedQCalculation);
                         delayedMostRecentTime = iterationCount;
                         //console.log("delayed learning 1");
                     } else if (delayedTimes[previousRow][previousMaxQ[1]] >= delayedMostRecentTime){
@@ -750,7 +764,8 @@
                     } 
                     delayedTimes[previousRow][previousMaxQ[1]] = iterationCount;
                     delayedAttemptedUpdates[previousRow][previousMaxQ[1]] = 0;
-                    delayedLearnFlags[previousRow][previousMaxQ[1]] = 0;
+                    //delayedLearnFlags[previousRow][previousMaxQ[1]] = 0;
+                    delayedCounters[previousRow][previousMaxQ[1]] = 0;
                     //console.log("delayed learning 3");
                 }
             } else if (delayedTimes[previousRow][previousMaxQ[1]] < delayedMostRecentTime){
@@ -895,6 +910,13 @@
                 // set doubleAbsoluteIndex to doubleAbsoluteRandomize values randomly
                 doubleAbsoluteIndex = doubleAbsoluteRandomize[Math.floor(Math.random() * doubleAbsoluteRandomize.length)];
             }
+        }
+
+        // bobo debug
+        if (row == 9){
+            console.log("findMaxQ: maxQ = " + maxQ);
+            console.log("findMaxQ: indexFound = " + indexFound);
+            console.log("");
         }
 
         return [maxQ, indexFound, maxQB, indexFoundB, doubleAbsoluteQ, doubleAbsoluteIndex];
