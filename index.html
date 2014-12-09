@@ -108,6 +108,18 @@
     iterationCounterText.y = 250;
     stage.addChild(iterationCounterText);
 
+    // le total reward
+    var totalRewardText = new PIXI.Text("Reward: ", {font:"15px Arial", fill:"white"});
+    totalRewardText.x = 200;
+    totalRewardText.y = 251;
+    stage.addChild(totalRewardText);
+
+    var totalRewardCount = 0;
+    var totalRewardCountText = new PIXI.Text("0", {font:"18px Arial", fill:"white"});
+    totalRewardCountText.x = 270;
+    totalRewardCountText.y = 250;
+    stage.addChild(totalRewardCountText);
+
     // le choose your algorithm
     var chooseText = new PIXI.Text("Choose your algorithm:", {font:"14px Arial", fill:"white"});
     chooseText.x = 470;
@@ -158,6 +170,10 @@
         iterationCount = 0;
         iterationCounterText.setText(iterationCount);
 
+        // reset reward count
+        totalRewardCount = 0;
+        totalRewardCountText.setText(totalRewardCount);
+
         // tint color
         detailsText.tint = 0xffff00;
         delayedText.tint = 0xffffff;
@@ -182,6 +198,10 @@
         // reset iteration count
         iterationCount = 0;
         iterationCounterText.setText(iterationCount);
+
+        // reset reward count
+        totalRewardCount = 0;
+        totalRewardCountText.setText(totalRewardCount);
 
         // tint color
         detailsText.tint = 0xffffff;
@@ -212,6 +232,10 @@
         // reset iteration count
         iterationCount = 0;
         iterationCounterText.setText(iterationCount);
+
+        // reset reward count
+        totalRewardCount = 0;
+        totalRewardCountText.setText(totalRewardCount);
 
         // tint color
         detailsText.tint = 0xffffff;
@@ -551,6 +575,15 @@
                 // increment iterationCount for textView
                 iterationCount += 1;
                 iterationCounterText.setText(iterationCount);
+
+                // reset reward count
+                if (movementResult == 10 || movementResult == 23){
+                    totalRewardCount -= 500;
+                    totalRewardCountText.setText(totalRewardCount);
+                } else if (movementResult == 27){
+                    totalRewardCount += 100;
+                    totalRewardCountText.setText(totalRewardCount);                   
+                }
             }
 
 
