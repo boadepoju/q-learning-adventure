@@ -152,6 +152,12 @@
     var speedyText = new PIXI.Text("Speedy", {font:"17px Arial", fill:"white"});
     createSpeedyButton();
 
+    // add view q-table button
+    var viewQTableButton = new PIXI.Graphics();
+    var viewQTableButtonOverlay = new PIXI.Graphics();
+    var viewQButtonText = new PIXI.Text("Toggle Q-Table", {font:"17px Arial", fill:"white"});
+    createQTableButton();
+    
     dashboardButtonOverlay.click = function(mouseData){
        console.log("CLICK!");
        //displayModal = true;
@@ -162,8 +168,10 @@
        speedyLearning = false;
 
         qtable = new Array(28);
-        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
-            qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (var qx = 0; qx < 28; qx++){
+            for (var qy = 0; qy < 28; qy++){
+                qtable[qx][qy] = 0;
+            }
         }
 
         // reset iteration count
@@ -180,8 +188,7 @@
         doubleText.tint = 0xffffff;
         speedyText.tint = 0xffffff;
 
-        detailsModalBackground.alpha = 1;
-
+        createQTableDisplay();
     }
 
     delayedButtonOverlay.click = function(mouseData){
@@ -194,8 +201,10 @@
        speedyLearning = false;
 
         qtable = new Array(28);
-        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
-            qtable[qxIterator] = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
+        for (var qx = 0; qx < 28; qx++){
+            for (var qy = 0; qy < 28; qy++){
+                qtable[qx][qy] = 5;
+            }
         }
 
         // reset iteration count
@@ -212,7 +221,7 @@
         doubleText.tint = 0xffffff;
         speedyText.tint = 0xffffff;
 
-        detailsModalBackground.alpha = 1;
+        createQTableDisplay();
     }
 
     doubleButtonOverlay.click = function(mouseData){
@@ -225,13 +234,17 @@
        speedyLearning = false;
 
         qtable = new Array(28);
-        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
-            qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (var qx = 0; qx < 28; qx++){
+            for (var qy = 0; qy < 28; qy++){
+                qtable[qx][qy] = 0;
+            }
         }
 
         doubleBTable = new Array(28);
-        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
-            doubleBTable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (var qx = 0; qx < 28; qx++){
+            for (var qy = 0; qy < 28; qy++){
+                doubleBTable[qx][qy] = 0;
+            }
         }
 
         // reset iteration count
@@ -247,6 +260,8 @@
         delayedText.tint = 0xffffff;
         doubleText.tint = 0xffff00;
         speedyText.tint = 0xffffff;
+
+        createQTableDisplay();
     }
 
     // 
@@ -270,8 +285,10 @@
        regularLearning = false;
 
         qtable = new Array(28);
-        for (var qxIterator = 0; qxIterator < 28; qxIterator++){
-            qtable[qxIterator] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (var qx = 0; qx < 28; qx++){
+            for (var qy = 0; qy < 28; qy++){
+                qtable[qx][qy] = 0;
+            }
         }
 
         speedyCount = 0;
@@ -292,7 +309,21 @@
         doubleText.tint = 0xffffff;
         speedyText.tint = 0xffff00;
 
-        detailsModalBackground.alpha = 1;
+        createQTableDisplay();
+    }
+
+    var qTabTrack = 0;
+
+    viewQTableButtonOverlay.click = function(mouseData){
+        if (qTabTrack == 0){
+            detailsModalBackground.alpha = 1;
+            viewQButtonText.tint = 0xffff00;
+            qTabTrack = 1;
+        } else {
+            detailsModalBackground.alpha = 0;
+            viewQButtonText.tint = 0xffffff;
+            qTabTrack = 0;
+        }
     }
 
     var trackBackgroundPos = 0;
@@ -359,10 +390,6 @@
 
     // le details modal black background
     var detailsModalBackground = new PIXI.Sprite(blackTexture);
-    detailsModalBackground.alpha = 0;
-    detailsModalBackground.position.x = 420;
-    stage.addChild(detailsModalBackground);
-
     createQTableDisplay();
 
 
@@ -654,6 +681,11 @@
      *
      */
     function createQTableDisplay(){
+        detailsModalBackground = new PIXI.Sprite(blackTexture);
+        detailsModalBackground.alpha = 0;
+        detailsModalBackground.position.x = 420;
+        stage.addChild(detailsModalBackground);
+
         // print labels once across top
         labelInc = 50;
         for (var i = 0; i < labels.length; i++){
@@ -917,11 +949,11 @@
         }
 
         // bobo debug
-        if (row == 9){
-            console.log("findMaxQ: maxQ = " + maxQ);
-            console.log("findMaxQ: indexFound = " + indexFound);
-            console.log("");
-        }
+        //if (row == 9){
+        //    console.log("findMaxQ: maxQ = " + maxQ);
+        //    console.log("findMaxQ: indexFound = " + indexFound);
+        //    console.log("");
+        //}
 
         return [maxQ, indexFound, maxQB, indexFoundB, doubleAbsoluteQ, doubleAbsoluteIndex];
     }
@@ -1153,6 +1185,33 @@
         speedyButtonOverlay.alpha = 0;
         stage.addChild(speedyButtonOverlay);       
     }
+
+    /*
+     *
+     */
+    function createQTableButton(){
+        
+        viewQTableButton.beginFill(0x4040c4);
+        viewQTableButton.moveTo(10, 285);
+        viewQTableButton.drawRect(10, 285, 130, 35);
+        viewQTableButton.endFill();
+        stage.addChild(viewQTableButton);
+        
+        // add text for details button
+        viewQButtonText.x = 18;
+        viewQButtonText.y = 295;
+        //speedyText.interactive = true;
+        stage.addChild(viewQButtonText); 
+
+        viewQTableButtonOverlay.beginFill(0x4040c4);
+        viewQTableButtonOverlay.moveTo(10, 285);
+        viewQTableButtonOverlay.drawRect(10, 285, 130, 35);
+        viewQTableButtonOverlay.endFill();
+        viewQTableButtonOverlay.interactive = true;
+        viewQTableButtonOverlay.alpha = 0;
+        stage.addChild(viewQTableButtonOverlay);    
+    }
+ 
  
     </script>
  
